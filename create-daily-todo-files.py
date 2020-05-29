@@ -9,8 +9,9 @@ from modules import config
 TODO_EXTENSION = '.todo'
 
 script_name = utils.get_script_name(__file__)
-logger = log.get_logger(script_name)
 config = config.get_config(script_name)
+log_path = Path(config['paths']['log_path'])
+logger = log.get_logger(script_name, log_path=log_path)
 
 def main():
   todo_path = Path(config['paths']['todo_path'])

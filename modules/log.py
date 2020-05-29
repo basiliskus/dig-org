@@ -1,9 +1,8 @@
 import logging
 
 LOG_EXTENSION = '.log'
-LOG_PATH = 'logs/'
 
-def get_logger(fname, level=logging.INFO):
+def get_logger(fname, log_path='logs', level=logging.INFO):
   logger = logging.getLogger()
   logger.setLevel(level)
 
@@ -12,7 +11,7 @@ def get_logger(fname, level=logging.INFO):
 
   datefmt = '%Y/%m/%d %H:%M:%S'
   fhformat = '[%(asctime)s][%(levelname)s] %(message)s'
-  log_fpath = f'{LOG_PATH}{fname}{LOG_EXTENSION}'
+  log_fpath = f'{log_path}/{fname}{LOG_EXTENSION}'
   fh = logging.FileHandler(log_fpath)
   fh.setFormatter(logging.Formatter(fhformat, datefmt))
   logger.addHandler(fh)
