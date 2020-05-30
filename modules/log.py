@@ -2,7 +2,7 @@ import logging
 
 LOG_EXTENSION = '.log'
 
-def get_logger(fname, log_path='logs', level=logging.INFO):
+def get_logger(fname, log_path='logs', level=logging.DEBUG):
   logger = logging.getLogger()
   logger.setLevel(level)
 
