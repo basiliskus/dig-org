@@ -8,21 +8,25 @@ from modules import config
 
 TODO_EXTENSION = '.todo'
 
+global_config = config.get_config('global')
+log_path = Path(global_config['paths']['log_path'])
+
 script_name = utils.get_script_name(__file__)
 config = config.get_config(script_name)
-log_path = Path(config['paths']['log_path'])
+todo_path = Path(config['paths']['todo_path'])
+
 logger = log.get_logger(script_name, log_path=log_path)
 
+
 def main():
-  todo_path = Path(config['paths']['todo_path'])
-  today = datetime.today()
-  yesterday = today - timedelta(days=1)
 
   # Cleanup tasks
   todo_files = [f for f in todo_path.iterdir() if f.suffix == TODO_EXTENSION]
   cleanup(todo_files)
 
   # Create today's todo file
+  today = datetime.today()
+  yesterday = today - timedelta(days=1)
   today_fpath = todo_path / f"{today.strftime('%Y-%m-%d')}{TODO_EXTENSION}"
   day_file_content = f"Day of {today.strftime('%m/%d/%Y')}:\n"
   create_file(today_fpath, day_file_content)
