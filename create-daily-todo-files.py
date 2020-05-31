@@ -1,5 +1,7 @@
+import re
+import calendar
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 from modules import log
 from modules import utils
@@ -8,6 +10,16 @@ from modules import config
 
 TODO_EXTENSION = '.todo'
 
+DAY_FNAME_PATTERN = r'(\d+-\d+-\d+)'
+DAY_ARCHIVE_FNAME = 'archive-daily'
+DAY_FNAME_FORMAT = '%Y-%m-%d'
+DAY_HEADER_FORMAT = '%m/%d/%Y'
+
+WEEK_FNAME_PATTERN = r'(\d+-\d+)-week-(\d+)'
+WEEK_ARCHIVE_FNAME = 'archive-weekly'
+WEEK_FNAME_STRFTIME_FORMAT = '%Y-%m'
+WEEK_HEADER_FORMAT = '%m/%d'
+
 global_config = config.get_config('global')
 log_path = Path(global_config['paths']['log_path'])
 
@@ -15,20 +27,22 @@ script_name = utils.get_script_name(__file__)
 config = config.get_config(script_name)
 todo_path = Path(config['paths']['todo_path'])
 
+backup_path = Path(config['paths']['backup_path'])
+
 logger = log.get_logger(script_name, log_path=log_path)
+
+today = datetime.today().date()
+today_fname = today.strftime(DAY_FNAME_FORMAT)
 
 
 def main():
 
-  # Cleanup tasks
   todo_files = [f for f in todo_path.iterdir() if f.suffix == TODO_EXTENSION]
-  cleanup(todo_files)
+  cleanup_unused_files(todo_files)
 
   # Create today's todo file
-  today = datetime.today()
-  yesterday = today - timedelta(days=1)
-  today_fpath = todo_path / f"{today.strftime('%Y-%m-%d')}{TODO_EXTENSION}"
-  day_file_content = f"Day of {today.strftime('%m/%d/%Y')}:\n"
+  today_fpath = get_fpath(today_fname)
+  day_file_content = f"Day of {today.strftime(DAY_HEADER_FORMAT)}:\n"
   create_file(today_fpath, day_file_content)
 
   # Create next week's todo file
@@ -40,19 +54,119 @@ def main():
   week_file_content = f"Week of {start_of_week.strftime('%m/%d')} - {end_of_week.strftime('%m/%d')}:\n"
   create_file(week_fpath, week_file_content)
 
+  # Cleanup daily tasks
+  day_files = [ fpath for fpath in todo_files if re.search(DAY_FNAME_PATTERN, fpath.stem) ]
+  day_archive_fpath = get_fpath(DAY_ARCHIVE_FNAME)
+  get_day_date = lambda fpath: datetime.strptime(fpath.stem, DAY_FNAME_FORMAT).date()
+  get_day_archive_header = lambda date: f"{date.strftime(DAY_HEADER_FORMAT)}:\n"
+  get_day_current_fpath = lambda date: get_fpath(date.strftime(DAY_FNAME_FORMAT))
+  archive_files(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
+
+  # Cleanup weekly tasks
+  week_files = [ fpath for fpath in todo_files if re.search(WEEK_FNAME_PATTERN, fpath.stem) ]
+  week_archive_fpath = get_fpath(WEEK_ARCHIVE_FNAME)
+  first_day_of_week = get_first_day_of_week(today)
+  archive_files(week_files, week_archive_fpath, first_day_of_week, get_week_date, get_week_archive_header, get_week_current_fpath)
+
+
 def create_file(fpath, content):
   if not fpath.exists():
-    logger.info(f'creating file: {fpath}')
+    logger.debug(f'[create] creating file: {fpath}')
     with open(fpath, 'w') as file:
       file.write(content)
 
-def cleanup(files):
+def archive_files(relevant_files, archive_fpath, current_date, get_date, get_archive_header, get_current_fpath):
+
+  for fpath in relevant_files:
+
+    try:
+      fdate = get_date(fpath)
+    except:
+      continue
+
+    if (fdate < current_date):
+      current_fpath = get_current_fpath(current_date)
+      with open(fpath) as past_file, \
+        open(archive_fpath, 'a') as archive_file, \
+        open(current_fpath, 'a') as current_file:
+        archive_first_line = True
+        next(past_file) # ignore first line of file
+        for line in past_file:
+          if is_task_done(line):
+            # archive
+            if archive_first_line:
+              archive_file.write(get_archive_header(fdate))
+              archive_first_line = False
+            logger.debug(f"[archive] archiving task: '{line.strip()}'")
+            archive_file.write(line)
+          else:
+            # move task to current todo
+            logger.debug(f"[cleanup] moving task to current todo: '{line.strip()}'")
+            current_file.write(line)
+      logger.debug(f"[cleanup] moving '{fpath.name}' to backup folder '{backup_path}'")
+      backup_or_delete(fpath)
+
+
+def is_task_done(task):
+  checkmark = task[1:4].strip()
+  is_checkmark_checked = (checkmark == "[x]")
+  return is_checkmark_checked
+
+# def is_relevant_file(fname):
+#   return fname in [ today_fname, day_archive_fname ]
+
+def get_fpath(fname):
+  return todo_path / f'{fname}{TODO_EXTENSION}'
+
+def get_week_date(fpath):
+  match = re.search(WEEK_FNAME_PATTERN, fpath.stem)
+  if match:
+    year_month = match[1]
+    monthweek = int(match[2])
+    first_day_month = datetime.strptime(year_month, WEEK_FNAME_STRFTIME_FORMAT).date()
+    first_day_month_week = first_day_month.isocalendar()[1]
+    return date.fromisocalendar(first_day_month.year, first_day_month_week + monthweek - 1, 1)
+  else:
+    raise ValueError("date could not be extracted from '{fpath}'")
+
+def get_week_archive_header(pdate):
+  weekday = calendar.weekday(pdate.year, pdate.month, pdate.day)
+  sdate = get_first_day_of_week(pdate)
+  edate = get_last_day_of_week(pdate)
+  return f'{sdate.strftime(WEEK_HEADER_FORMAT)} - {edate.strftime(WEEK_HEADER_FORMAT)}:\n'
+
+def get_first_day_of_week(pdate):
+  weekday = calendar.weekday(pdate.year, pdate.month, pdate.day)
+  fdate = pdate - timedelta(days=weekday)
+  return fdate
+
+def get_last_day_of_week(pdate):
+  weekday = calendar.weekday(pdate.year, pdate.month, pdate.day)
+  ldate = pdate + timedelta(days=6-weekday)
+  return ldate
+
+def get_week_current_fpath(pdate):
+  week_month_day = pdate.strftime(WEEK_FNAME_STRFTIME_FORMAT)
+  monthweek = get_week_number_of_month(pdate)
+  return get_fpath(f'{week_month_day}-week-{monthweek}')
+
+def get_week_number_of_month(pdate):
+  return (pdate.isocalendar()[1] - pdate.replace(day=1).isocalendar()[1] + 1)
+
+def backup_or_delete(fpath, action='backup'):
+  if action == 'backup':
+    fpath.replace(backup_path / fpath.name)
+  elif action == 'delete':
+    fpath.unlink()
+  else:
+    raise ValueError("action must be either 'backup' or 'delete'")
+
+def cleanup_unused_files(files):
   for fpath in files:
-    # Cleanup unused todo files
     file_line_count = len(open(fpath).readlines())
     if file_line_count < 2:
-      logger.info(f'removing unused file: {fpath}')
-      fpath.unlink()
+      logger.debug(f"[cleanup] moving '{fpath.name}' to backup folder '{backup_path}'")
+      backup_or_delete(fpath)
 
 
 if __name__ == "__main__":
