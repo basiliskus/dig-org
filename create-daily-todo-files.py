@@ -26,8 +26,8 @@ log_path = Path(global_config['paths']['log_path'])
 script_name = utils.get_script_name(__file__)
 config = config.get_config(script_name)
 todo_path = Path(config['paths']['todo_path'])
-
 backup_path = Path(config['paths']['backup_path'])
+archive_path = Path(config['paths']['archive_path'])
 
 logger = log.get_logger(script_name, log_path=log_path)
 
@@ -56,17 +56,17 @@ def main():
 
   # Cleanup daily tasks
   day_files = [ fpath for fpath in todo_files if re.search(DAY_FNAME_PATTERN, fpath.stem) ]
-  day_archive_fpath = get_fpath(DAY_ARCHIVE_FNAME)
+  day_archive_fpath = get_fpath(DAY_ARCHIVE_FNAME, fpath=archive_path)
   get_day_date = lambda fpath: datetime.strptime(fpath.stem, DAY_FNAME_FORMAT).date()
   get_day_archive_header = lambda date: f"{date.strftime(DAY_HEADER_FORMAT)}:\n"
   get_day_current_fpath = lambda date: get_fpath(date.strftime(DAY_FNAME_FORMAT))
-  archive_files(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
+  archive_tasks(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
 
   # Cleanup weekly tasks
   week_files = [ fpath for fpath in todo_files if re.search(WEEK_FNAME_PATTERN, fpath.stem) ]
-  week_archive_fpath = get_fpath(WEEK_ARCHIVE_FNAME)
+  week_archive_fpath = get_fpath(WEEK_ARCHIVE_FNAME, fpath=archive_path)
   first_day_of_week = get_first_day_of_week(today)
-  archive_files(week_files, week_archive_fpath, first_day_of_week, get_week_date, get_week_archive_header, get_week_current_fpath)
+  archive_tasks(week_files, week_archive_fpath, first_day_of_week, get_week_date, get_week_archive_header, get_week_current_fpath)
 
 
 def create_file(fpath, content):
@@ -75,7 +75,7 @@ def create_file(fpath, content):
     with open(fpath, 'w') as file:
       file.write(content)
 
-def archive_files(relevant_files, archive_fpath, current_date, get_date, get_archive_header, get_current_fpath):
+def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_archive_header, get_current_fpath):
 
   for fpath in relevant_files:
 
@@ -103,6 +103,7 @@ def archive_files(relevant_files, archive_fpath, current_date, get_date, get_arc
             # move task to current todo
             logger.debug(f"[cleanup] moving task to current todo: '{line.strip()}'")
             current_file.write(line)
+
       logger.debug(f"[cleanup] moving '{fpath.name}' to backup folder '{backup_path}'")
       backup_or_delete(fpath)
 
@@ -115,8 +116,8 @@ def is_task_done(task):
 # def is_relevant_file(fname):
 #   return fname in [ today_fname, day_archive_fname ]
 
-def get_fpath(fname):
-  return todo_path / f'{fname}{TODO_EXTENSION}'
+def get_fpath(fname, fpath=todo_path):
+  return fpath / f'{fname}{TODO_EXTENSION}'
 
 def get_week_date(fpath):
   match = re.search(WEEK_FNAME_PATTERN, fpath.stem)
@@ -160,6 +161,9 @@ def backup_or_delete(fpath, action='backup'):
     fpath.unlink()
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
+
+def archive(fpath):
+  fpath.replace(archive_path / fpath.name)
 
 def cleanup_unused_files(files):
   for fpath in files:
