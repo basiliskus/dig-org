@@ -1,6 +1,6 @@
 create-daily-todo-files.py:
- [ ] add file consolidation
-   [ ] archive past day's completed tasks in single 'archive-daily.todo' file
-   [ ] move daily pending past tasks to today's todo file
-   [ ] archive past weekly's completed tasks in single 'archive-weekly.todo' file
-   [ ] move weekly pending past tasks to this week's todo file
+ [x] add file consolidation
+   [x] archive past day's completed tasks in single 'archive-daily.todo' file
+   [x] move daily pending past tasks to today's todo file
+   [x] archive past weekly's completed tasks in single 'archive-weekly.todo' file
+   [x] move weekly pending past tasks to this week's todo file
