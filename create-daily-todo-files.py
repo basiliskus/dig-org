@@ -60,52 +60,74 @@ def main():
   get_day_date = lambda fpath: datetime.strptime(fpath.stem, DAY_FNAME_FORMAT).date()
   get_day_archive_header = lambda date: f"{date.strftime(DAY_HEADER_FORMAT)}:\n"
   get_day_current_fpath = lambda date: get_fpath(date.strftime(DAY_FNAME_FORMAT))
-  archive_tasks(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
+
+  try:
+    archive_tasks(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
+  except Exception as e:
+    logger.error(e)
 
   # Cleanup weekly tasks
   week_files = [ fpath for fpath in todo_files if re.search(WEEK_FNAME_PATTERN, fpath.stem) ]
   week_archive_fpath = get_fpath(WEEK_ARCHIVE_FNAME, fpath=archive_path)
   first_day_of_week = get_first_day_of_week(today)
-  archive_tasks(week_files, week_archive_fpath, first_day_of_week, get_week_date, get_week_archive_header, get_week_current_fpath)
+  try:
+    archive_tasks(week_files, week_archive_fpath, first_day_of_week, get_week_date, get_week_archive_header, get_week_current_fpath)
+  except Exception as e:
+    logger.error(e)
 
 
 def create_file(fpath, content):
   if not fpath.exists():
-    logger.debug(f'[create] creating file: {fpath}')
+    logger.debug(f"creating file: '{fpath}'")
     with open(fpath, 'w') as file:
       file.write(content)
 
 def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_archive_header, get_current_fpath):
 
+  current_fpath = get_current_fpath(current_date)
+
   for fpath in relevant_files:
 
     try:
       fdate = get_date(fpath)
-    except:
+    except Exception as e:
+      logger.debug(f"not able to archive: '{fpath}'")
+      logger.error(e)
       continue
 
     if (fdate < current_date):
-      current_fpath = get_current_fpath(current_date)
-      with open(fpath) as past_file, \
-        open(archive_fpath, 'a') as archive_file, \
-        open(current_fpath, 'a') as current_file:
-        archive_first_line = True
-        next(past_file) # ignore first line of file
-        for line in past_file:
-          if is_task_done(line):
-            # archive
-            if archive_first_line:
-              archive_file.write(get_archive_header(fdate))
-              archive_first_line = False
-            logger.debug(f"[archive] archiving task: '{line.strip()}'")
-            archive_file.write(line)
-          else:
-            # move task to current todo
-            logger.debug(f"[cleanup] moving task to current todo: '{line.strip()}'")
-            current_file.write(line)
 
-      logger.debug(f"[cleanup] moving '{fpath.name}' to backup folder '{backup_path}'")
-      backup_or_delete(fpath)
+      with open(archive_fpath, 'a') as archive_file, \
+        open(current_fpath, 'a') as current_file:
+        try:
+          with open(fpath) as past_file:
+            archive_first_line = True
+            next(past_file) # ignore first line of file
+            for line in past_file:
+              if is_task_done(line):
+                # archive
+                if archive_first_line:
+                  try:
+                    archive_file.write(get_archive_header(fdate))
+                  except Exception as e:
+                    logger.error(e)
+                  archive_first_line = False
+                logger.debug(f"archiving task: '{line.strip()}'")
+                archive_file.write(line)
+              else:
+                # move task to current todo
+                logger.debug(f"moving task to current todo: '{line.strip()}'")
+                current_file.write(line)
+        except Exception as e:
+          logger.debug(f"not able to archive: '{fpath}'")
+          logger.error(e)
+          continue
+
+      try:
+        logger.debug(f"moving '{fpath.name}' to backup folder '{backup_path}'")
+        backup_or_delete(fpath)
+      except Exception as e:
+        logger.error(e)
 
 
 def is_task_done(task):
@@ -115,6 +137,7 @@ def is_task_done(task):
 
 # def is_relevant_file(fname):
 #   return fname in [ today_fname, day_archive_fname ]
+#   return fname in [ today_fname, DAY_ARCHIVE_FNAME,  ]
 
 def get_fpath(fname, fpath=todo_path):
   return fpath / f'{fname}{TODO_EXTENSION}'
@@ -128,7 +151,7 @@ def get_week_date(fpath):
     first_day_month_week = first_day_month.isocalendar()[1]
     return date.fromisocalendar(first_day_month.year, first_day_month_week + monthweek - 1, 1)
   else:
-    raise ValueError("date could not be extracted from '{fpath}'")
+    raise ValueError(f"date could not be extracted from '{fpath}'")
 
 def get_week_archive_header(pdate):
   weekday = calendar.weekday(pdate.year, pdate.month, pdate.day)
@@ -169,8 +192,11 @@ def cleanup_unused_files(files):
   for fpath in files:
     file_line_count = len(open(fpath).readlines())
     if file_line_count < 2:
-      logger.debug(f"[cleanup] moving '{fpath.name}' to backup folder '{backup_path}'")
-      backup_or_delete(fpath)
+      logger.debug(f"moving '{fpath.name}' to backup folder '{backup_path}'")
+      try:
+        backup_or_delete(fpath)
+      except Exception as e:
+        logger.error(e)
 
 
 if __name__ == "__main__":
