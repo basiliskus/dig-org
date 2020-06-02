@@ -81,6 +81,8 @@ def create_file(fpath, content):
     logger.debug(f"creating file: '{fpath}'")
     with open(fpath, 'w') as file:
       file.write(content)
+  else:
+    logger.debug(f"file '{fpath}' already exists")
 
 def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_archive_header, get_current_fpath):
 
