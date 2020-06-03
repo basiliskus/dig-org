@@ -5,3 +5,5 @@ create-daily-todo-files.py:
    [x] archive past weekly's completed tasks in single 'archive-weekly.todo' file
    [x] move weekly pending past tasks to this week's todo file
  [x] add error handling
+ [x] tagging support @done (20-06-02 18:37)
+ [x] manage recurring tasks @done (20-06-02 18:37)

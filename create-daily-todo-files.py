@@ -20,6 +20,11 @@ WEEK_ARCHIVE_FNAME = 'archive-weekly'
 WEEK_FNAME_STRFTIME_FORMAT = '%Y-%m'
 WEEK_HEADER_FORMAT = '%m/%d'
 
+DONE_TAG = '@done'
+RECURRING_TAG = '@recurring'
+TASK_PATTERN = r'^\s*(\[[ x]\])\s*([^@]+)(@\w+)?\s*(' + DONE_TAG + r')?\s*(\(.+\))?$'
+TASK_TIMESTAMP = r'(%y-%m-%d %H:%M)'
+
 global_config = config.get_config('global')
 log_path = Path(global_config['paths']['log_path'])
 
@@ -60,7 +65,6 @@ def main():
   get_day_date = lambda fpath: datetime.strptime(fpath.stem, DAY_FNAME_FORMAT).date()
   get_day_archive_header = lambda date: f"{date.strftime(DAY_HEADER_FORMAT)}:\n"
   get_day_current_fpath = lambda date: get_fpath(date.strftime(DAY_FNAME_FORMAT))
-
   try:
     archive_tasks(day_files, day_archive_fpath, today, get_day_date, get_day_archive_header, get_day_current_fpath)
   except Exception as e:
@@ -106,7 +110,8 @@ def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_arc
             archive_first_line = True
             next(past_file) # ignore first line of file
             for line in past_file:
-              if is_task_done(line):
+              task = parse_task(line)
+              if task['is_checked'] and not task['has_recurring_tag']:
                 # archive
                 if archive_first_line:
                   try:
@@ -119,6 +124,8 @@ def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_arc
               else:
                 # move task to current todo
                 logger.debug(f"moving task to current todo: '{line.strip()}'")
+                if task['has_recurring_tag']:
+                  line = create_task_line(False, task['description'], task['has_recurring_tag'])
                 current_file.write(line)
         except Exception as e:
           logger.debug(f"not able to archive: '{fpath}'")
@@ -132,10 +139,26 @@ def archive_tasks(relevant_files, archive_fpath, current_date, get_date, get_arc
         logger.error(e)
 
 
-def is_task_done(task):
-  checkmark = task[1:4].strip()
-  is_checkmark_checked = (checkmark == "[x]")
-  return is_checkmark_checked
+def parse_task(line):
+  match = re.search(TASK_PATTERN, line)
+  if match and match[1] and match[2] :
+    is_checked = (match[1] == "[x]")
+    has_recurring_tag = (match[3] == RECURRING_TAG)
+    has_done_tag = (match[4] == DONE_TAG)
+    try:
+      timestamp = datetime.strptime(match[5], TASK_TIMESTAMP)
+    except:
+      timestamp = None
+    return { 'is_checked': is_checked, 'description': match[2].strip(), 'has_recurring_tag': has_recurring_tag, 'has_done_tag': has_done_tag, 'timestamp': timestamp }
+  else:
+    raise ValueError(f"could not parse task '{line}'")
+
+def create_task_line(is_checked, description, has_recurring_tag=False, has_done_tag=False, timestamp=None):
+  checkbox = '[x]' if is_checked else '[ ]'
+  append_tags = f' {RECURRING_TAG}' if has_recurring_tag else ''
+  append_tags += f' {DONE_TAG}' if has_done_tag else ''
+  append_tags += f' { timestamp.strftime(TASK_TIMESTAMP)}' if timestamp else ''
+  return f' {checkbox} {description}{append_tags}\n'
 
 # def is_relevant_file(fname):
 #   return fname in [ today_fname, day_archive_fname ]
