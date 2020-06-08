@@ -1,4 +1,5 @@
 import re
+import argparse
 import calendar
 from pathlib import Path
 from datetime import datetime, date, timedelta
@@ -27,20 +28,23 @@ today = datetime.today().date()
 tomorrow = today + timedelta(days=1)
 
 
-def main():
+def main(args):
+
+  if args['test']:
+    log.remove_file_handler(logger)
 
   todo_files = [f for f in todo_path.iterdir() if f.suffix == Todo.file_extension]
-  cleanup_unused_files(todo_files)
+  cleanup_unused_files(todo_files, args['test'])
 
   # Create today's todo file
   today_todo = DailyTodo(today)
-  create_file(today_todo)
+  create_file(today_todo, args['test'])
 
   # Create next week's todo file
   future_day = today + timedelta(days=7)
   next_week_first_day = WeeklyTodo.get_first_day_of_week(future_day)
   next_week_todo = WeeklyTodo(next_week_first_day)
-  create_file(next_week_todo)
+  create_file(next_week_todo, args['test'])
 
   # Cleanup daily tasks
   today_todo = DailyTodo(today)
@@ -48,7 +52,7 @@ def main():
   day_todos = [ t for t in extract_todos(day_files, DailyTodo) if t.sdate <  today ]
   archive_fpath = get_fpath(ArchiveTodo.archive_fname, fpath=archive_path)
   try:
-    update_todos(day_todos, today_todo)
+    update_todos(day_todos, today_todo, args['test'])
   except Exception as e:
     logger.exception(e)
 
@@ -58,30 +62,30 @@ def main():
   week_files = [ fpath for fpath in todo_files if re.search(WeeklyTodo.fname_pattern, fpath.stem) ]
   week_todos = [ t for t in extract_todos(week_files, WeeklyTodo) if t.iso_week_number < WeeklyTodo.get_iso_week_number(today) ]
   try:
-    update_todos(week_todos, weekly_todo)
+    update_todos(week_todos, weekly_todo, args['test'])
   except Exception as e:
     logger.exception(e)
 
 
-def create_file(todo):
+def create_file(todo, test):
   fpath = get_fpath(todo.fname)
   if not fpath.exists():
-    logger.debug(f"creating file: '{fpath}'")
-    write_todo(todo, fpath)
+    logger.info(f"creating file: '{fpath}'")
+    write_todo(todo, fpath, test)
   else:
-    logger.debug(f"file '{fpath}' already exists")
+    logger.info(f"file '{fpath}' already exists")
 
-def cleanup_unused_files(files):
+def cleanup_unused_files(files, test):
   for fpath in files:
     try:
       file_line_count = len(open(fpath).readlines())
       if file_line_count < 2:
-        logger.debug(f"moving '{fpath.name}' to backup folder '{backup_path}'")
+        if test: continue
         backup_or_delete(fpath)
     except Exception as e:
       logger.exception(e)
 
-def update_todos(todos, current_todo):
+def update_todos(todos, current_todo, test):
   archive_todo = ArchiveTodo()
   current_fpath = get_fpath(current_todo.fname)
   load_todo(current_todo, current_fpath)
@@ -91,32 +95,33 @@ def update_todos(todos, current_todo):
   for todo in todos:
     for task in todo.tasks:
       if task.is_completed() and not task.is_recurring():
-        logger.debug(f"archiving task: '{task.get_line().strip()}'")
         is_weekly = isinstance(todo, WeeklyTodo)
+        logger.info(f"archiving task: '{task.get_line().strip()}'")
         archive_todo.append(task, todo.sdate, is_weekly)
       else:
-        logger.debug(f"moving task to current todo: '{task.get_line().strip()}'")
         if task.is_recurring():
           task = Task('pending', task.description, recurring=True)
+        logger.info(f"moving task to current todo: '{task.get_line().strip()}'")
         current_todo.append(task)
 
-    fpath = get_fpath(todo.fname)
-    logger.debug(f"moving '{fpath.name}' to backup folder '{backup_path}'")
     try:
+      fpath = get_fpath(todo.fname)
       backup_or_delete(fpath)
     except Exception as e:
       logger.exception(e)
 
   try:
-    write_todo(current_todo, current_fpath)
-    write_todo(archive_todo, archive_fpath)
+    write_todo(current_todo, current_fpath, test)
+    write_todo(archive_todo, archive_fpath, test)
   except Exception as e:
     logger.exception(e)
 
 def backup_or_delete(fpath, action='backup'):
   if action == 'backup':
+    logger.info(f"moving '{fpath.name}' to backup folder '{backup_path}'")
     fpath.replace(backup_path / fpath.name)
   elif action == 'delete':
+    logger.info(f"deleting '{fpath}'")
     fpath.unlink()
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
@@ -137,13 +142,34 @@ def load_todo(todo, fpath):
     lines = file.readlines()
     todo.parse(lines)
 
-def write_todo(todo, fpath):
+def write_todo(todo, fpath, test=False):
+  logger.info(f"writing file '{fpath}'")
+  todostr = todo.get_string()
+  if test:
+    logger.debug(todostr)
+    return
   with open(fpath, 'w') as file:
-    file.write(todo.get_string())
+    file.write(todostr)
 
 def get_fpath(fname, fpath=todo_path):
   return fpath / f'{fname}{Todo.file_extension}'
 
 
+def get_parser():
+  parser = argparse.ArgumentParser(
+    description='Generate and manage ToDo files',
+    formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    )
+  parser.add_argument(
+    '-t',
+    '--test',
+    action='store_true',
+    help = 'Test run. No files will be moofied'
+    )
+  return parser
+
+
 if __name__ == "__main__":
-  main()
+  parser = get_parser()
+  args = vars(parser.parse_args())
+  main(args)
