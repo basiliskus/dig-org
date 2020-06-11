@@ -1,5 +1,6 @@
 import re
 import calendar
+# from enum import Enum
 from pathlib import Path
 from datetime import datetime, date, timedelta
 
@@ -15,29 +16,61 @@ WEEK_HEADER_FORMAT = '%m/%d'
 
 today = datetime.today().date()
 
+statusd = {
+  'pending': '[ ]',
+  'completed': '[x]',
+  'cancelled': '[-]'
+}
+
+priorityd = {
+  'today': 1,
+  'critical': 2,
+  'high': 3,
+  'low': 4,
+  'default': 5
+}
+
+# class Priority(Enum):
+#   today = 1
+#   critical = 2
+#   high = 3
+#   low = 4
+
+#   def __str__(self):
+#     return f'@{self.name}'
+
+# class Tag:
+#   def __init__(self, tag):
+#     _name = tag.name if isinstance(tag, Priority) else tag
+
+#   def __str__(self):
+#     return f'@{self._name}'
 
 class Task:
-  def __init__(self, status='pending', description='', tags=None, timestamp=None, priority=None, recurring=False, archived=False):
+  def __init__(self, status='pending', description='', tags=None, timestamp=None, priority='default', recurring=False, archived=False):
     self.status = status
     self.description = description
     self.tags = tags if tags is not None else []
     self.timestamp = timestamp
-    if priority: self.tags.append(f'@{priority}')
-    if recurring: self.tags.append(RECURRING_TAG)
+    self.priority = priority
+    self.recurring = recurring
     self.archived = archived
-    self.checkbox = {
-      'pending': '[ ]',
-      'completed': '[x]',
-      'cancelled': '[-]'
-    }
+
+  def __str__(self):
+    tags = ' ' + ' '.join(self.tags) if len(self.tags) > 0 else ''
+    priority = f' @{self.priority}' if self.priority and self.priority != 'default' else ''
+    recurring = f' {RECURRING_TAG}' if self.recurring else ''
+    done = f' {DONE_TAG}' if self.status == 'completed' else ''
+    timestamp = f' {self.timestamp.strftime(TASK_TIMESTAMP)}' if self.timestamp else ''
+    return f' {statusd[self.status]} {self.description}{tags}{priority}{recurring}{done}{timestamp}\n'
 
   def parse(self, line):
     match = re.search(TASK_PATTERN, line)
     if match and match[1] and match[2] :
-      self.status = list(self.checkbox.keys())[list(self.checkbox.values()).index(match[1])]
+      self.status = list(statusd.keys())[list(statusd.values()).index(match[1])]
       self.description = match[2].strip()
-      self.tags += [ match[3] ] if match[3] else []
-      self.tags += [ match[4] ] if match[4] else []
+      self._parse_tag(match[3])
+      self._parse_tag(match[4])
       try:
         self.timestamp = datetime.strptime(match[5], TASK_TIMESTAMP)
       except:
@@ -45,17 +78,21 @@ class Task:
     else:
       raise ValueError(f"could not parse task '{line}'")
 
-  def get_line(self):
-    checkbox = self.checkbox[self.status]
-    tags = ' ' + ' '.join(self.tags) if len(self.tags) > 0 else ''
-    timestamp = f" {self.timestamp.strftime(TASK_TIMESTAMP)}" if self.timestamp else ''
-    return f" {checkbox} {self.description}{tags}{timestamp}\n"
-
   def is_completed(self):
     return self.status == 'completed'
 
-  def is_recurring(self):
-    return RECURRING_TAG in self.tags
+  def _parse_tag(self, tag):
+    if not tag: return
+    if tag[1:] in priorityd.keys():
+      self.priority = tag[1:]
+      return
+    if tag == DONE_TAG:
+      self.status = 'completed'
+      return
+    if tag == RECURRING_TAG:
+      self.recurring = True
+      return
+    self.tags.append(tag)
 
 
 class Todo:
@@ -68,6 +105,11 @@ class Todo:
     self._header = ''
     self._sdate = sdate
     self.tasks = []
+
+  def __str__(self):
+    header = self.get_header_string()
+    tasks = self.get_tasks_string(sort='priority')
+    return header + tasks
 
   def parse(self, lines):
     first_line = True
@@ -84,16 +126,12 @@ class Todo:
   def append(self, task):
     self.tasks.append(task)
 
-  def get_string(self):
-    header = self.get_header_string()
-    tasks = self.get_tasks_string()
-    return header + tasks
-
   def get_header_string(self):
     return f'{self.header}\n'
 
-  def get_tasks_string(self):
-    task_lines = [ task.get_line() for task in self.tasks]
+  def get_tasks_string(self, sort=None):
+    if sort == 'priority': self.tasks.sort(key=lambda t: priorityd[t.priority])
+    task_lines = [ str(task) for task in self.tasks]
     return ''.join(task_lines)
 
 
@@ -214,7 +252,7 @@ class ArchiveTodo():
         todo.tasks.append(task)
     self.todos.append(todo)
 
-  def get_string(self):
+  def __str__(self):
     svalue = ''
     for todo in sorted(self.todos, key=lambda t: t.sdate):
       header = todo.sdate.strftime(self.header_format)

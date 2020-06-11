@@ -12,9 +12,10 @@
  [x] refactor and extract classes. load todo files in memory to manipulate tasks @done (20-06-06 17:30)
  [ ] write tests
  [x] rename project to 'task-org' @done (20-06-08 10:59)
- [ ] sort taks by priority
+ [x] sort taks by priority @done (20-06-11 16:18)
  [ ] add cli options to:
    [ ] create files
    [ ] add tasks
+   [ ] parse files: sort and add sections
  [ ] pick and add license
  [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode

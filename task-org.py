@@ -81,7 +81,7 @@ def cleanup_unused_files(files, test):
       file_line_count = len(open(fpath).readlines())
       if file_line_count < 2:
         if test: continue
-        backup_or_delete(fpath)
+        backup_or_delete(fpath, test)
     except Exception as e:
       logger.exception(e)
 
@@ -94,19 +94,19 @@ def update_todos(todos, current_todo, test):
 
   for todo in todos:
     for task in todo.tasks:
-      if task.is_completed() and not task.is_recurring():
+      if task.is_completed() and not task.recurring:
         is_weekly = isinstance(todo, WeeklyTodo)
-        logger.info(f"archiving task: '{task.get_line().strip()}'")
+        logger.info(f"archiving task: '{str(task).strip()}'")
         archive_todo.append(task, todo.sdate, is_weekly)
       else:
-        if task.is_recurring():
+        if task.recurring:
           task = Task('pending', task.description, recurring=True)
-        logger.info(f"moving task to current todo: '{task.get_line().strip()}'")
+        logger.info(f"moving task to current todo: '{str(task).strip()}'")
         current_todo.append(task)
 
     try:
       fpath = get_fpath(todo.fname)
-      backup_or_delete(fpath)
+      backup_or_delete(fpath, test)
     except Exception as e:
       logger.exception(e)
 
@@ -116,12 +116,14 @@ def update_todos(todos, current_todo, test):
   except Exception as e:
     logger.exception(e)
 
-def backup_or_delete(fpath, action='backup'):
+def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':
     logger.info(f"moving '{fpath.name}' to backup folder '{backup_path}'")
+    if test: return
     fpath.replace(backup_path / fpath.name)
   elif action == 'delete':
     logger.info(f"deleting '{fpath}'")
+    if test: return
     fpath.unlink()
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
@@ -144,12 +146,14 @@ def load_todo(todo, fpath):
 
 def write_todo(todo, fpath, test=False):
   logger.info(f"writing file '{fpath}'")
-  todostr = todo.get_string()
   if test:
-    logger.debug(todostr)
+    logger.debug(str(todo))
     return
-  with open(fpath, 'w') as file:
-    file.write(todostr)
+  try:
+    with open(fpath, 'w') as file:
+      file.write(str(todo))
+  except Exception as e:
+    logger.exception(e)
 
 def get_fpath(fname, fpath=todo_path):
   return fpath / f'{fname}{Todo.file_extension}'
@@ -172,4 +176,7 @@ def get_parser():
 if __name__ == "__main__":
   parser = get_parser()
   args = vars(parser.parse_args())
-  main(args)
+  try:
+    main(args)
+  except Exception as e:
+    logger.exception(e)
