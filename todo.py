@@ -108,7 +108,7 @@ class Todo:
 
   def __str__(self):
     header = self.get_header_string()
-    tasks = self.get_tasks_string(sort='priority')
+    tasks = self.get_tasks_and_sections_string(sort='priority')
     return header + tasks
 
   def parse(self, lines):
@@ -129,10 +129,34 @@ class Todo:
   def get_header_string(self):
     return f'{self.header}\n'
 
-  def get_tasks_string(self, sort=None):
-    if sort == 'priority': self.tasks.sort(key=lambda t: priorityd[t.priority])
-    task_lines = [ str(task) for task in self.tasks]
-    return ''.join(task_lines)
+  def get_tasks_string(self):
+    return ''.join([ str(task) for task in self.tasks ])
+
+  def get_tasks_and_sections_string(self, sort=None):
+    tasks = sorted(self.tasks, key=lambda t: priorityd[t.priority]) if sort == 'priority' else self.tasks
+    recurring_tasks = [ task for task in tasks if task.recurring ]
+    non_recurring_tasks = [ task for task in tasks if not task.recurring ]
+    strresult = ''.join([ str(task) for task in non_recurring_tasks ])
+    if len(recurring_tasks) > 0:
+      recurring_section = TodoSection('Recurring', recurring_tasks)
+      strresult += str(recurring_section)
+    return strresult
+
+
+class TodoSection:
+  def __init__(self, header='', tasks=None, level=1):
+    self.header = header
+    for task in tasks: task.level = level
+    self.tasks =  tasks if tasks is not None else []
+    self.level = level
+
+  def __str__(self):
+    task_lines = [ f'{self.indent}{str(task)}' for task in self.tasks]
+    return f'{self.indent}{self.header}:\n' + ''.join(task_lines)
+
+  @property
+  def indent(self):
+    return ' ' * self.level
 
 
 class DailyTodo(Todo):

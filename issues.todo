@@ -6,8 +6,8 @@
  [x] add error handling
  [x] tagging support @done (20-06-02 18:37)
  [x] manage recurring tasks @done (20-06-02 18:37)
- [ ] manage sections in files
- [ ] add recurring section in daily todo
+ [x] manage sections in files @done (20-06-11 18:25)
+ [x] add recurring section in daily todo @done (20-06-11 18:25)
  [x] archive done tasks in weekly file in the archive-daily, under the relevant day. remove the archive-weekly file @done (20-06-06 17:28)
  [x] refactor and extract classes. load todo files in memory to manipulate tasks @done (20-06-06 17:30)
  [ ] write tests
