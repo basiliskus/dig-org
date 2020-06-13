@@ -7,7 +7,7 @@ from datetime import datetime, date, timedelta
 from modules import log
 from modules import utils
 from modules import config
-from todo import Task, Todo, DailyTodo, WeeklyTodo, ArchiveTodo
+from todo import Task, Todo, TodoSection, DailyTodo, WeeklyTodo, ArchiveTodo
 
 # To add @recurring tag completion, add this line to  the
 # \Packages\PlainTasks\PlainTasks.sublime-completions file:
@@ -52,6 +52,7 @@ def main(args):
   day_todos = [ t for t in extract_todos(day_files, DailyTodo) if t.sdate <  today ]
   archive_fpath = get_fpath(ArchiveTodo.archive_fname, fpath=archive_path)
   try:
+    logger.debug('about to process daily todo')
     update_todos(day_todos, today_todo, args['test'])
   except Exception as e:
     logger.exception(e)
@@ -62,6 +63,7 @@ def main(args):
   week_files = [ fpath for fpath in todo_files if re.search(WeeklyTodo.fname_pattern, fpath.stem) ]
   week_todos = [ t for t in extract_todos(week_files, WeeklyTodo) if t.iso_week_number < WeeklyTodo.get_iso_week_number(today) ]
   try:
+    logger.debug('about to process weekly todo')
     update_todos(week_todos, weekly_todo, args['test'])
   except Exception as e:
     logger.exception(e)
@@ -93,16 +95,11 @@ def update_todos(todos, current_todo, test):
   load_todo(archive_todo, archive_fpath)
 
   for todo in todos:
-    for task in todo.tasks:
-      if task.is_completed() and not task.recurring:
-        is_weekly = isinstance(todo, WeeklyTodo)
-        logger.info(f"archiving task: '{str(task).strip()}'")
-        archive_todo.append(task, todo.sdate, is_weekly)
-      else:
-        if task.recurring:
-          task = Task('pending', task.description, recurring=True)
-        logger.info(f"moving task to current todo: '{str(task).strip()}'")
-        current_todo.append(task)
+    update_tasks(todo.tasks, current_todo, archive_todo)
+    for section in todo.sections:
+      section_todo = TodoSection(section._header)
+      update_tasks(section.tasks, section_todo, archive_todo)
+      current_todo.sections.append(section_todo)
 
     try:
       fpath = get_fpath(todo.fname)
@@ -115,6 +112,18 @@ def update_todos(todos, current_todo, test):
     write_todo(archive_todo, archive_fpath, test)
   except Exception as e:
     logger.exception(e)
+
+def update_tasks(tasks, todo, archive_todo):
+  for task in tasks:
+    if task.is_completed() and not task.recurring:
+      is_weekly = isinstance(todo, WeeklyTodo)
+      logger.info(f"archiving task: '{str(task).strip()}'")
+      archive_todo.append(task, todo.sdate, is_weekly)
+    else:
+      if task.recurring:
+        task = Task('pending', task.description, recurring=True)
+      logger.info(f"moving task to current todo: '{str(task).strip()}'")
+      todo.append(task)
 
 def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':

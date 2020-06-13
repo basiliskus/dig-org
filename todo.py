@@ -57,7 +57,7 @@ class Task:
     self.archived = archived
 
   def __str__(self):
-    tags = ' ' + ' '.join(self.tags) if len(self.tags) > 0 else ''
+    tags = ' ' + ' '.join(self.tags) if self.tags else ''
     priority = f' @{self.priority}' if self.priority and self.priority != 'default' else ''
     recurring = f' {RECURRING_TAG}' if self.recurring else ''
     done = f' {DONE_TAG}' if self.status == 'completed' else ''
@@ -66,7 +66,7 @@ class Task:
 
   def parse(self, line):
     match = re.search(TASK_PATTERN, line)
-    if match and match[1] and match[2] :
+    if match and match[1] and match[2]:
       self.status = list(statusd.keys())[list(statusd.values()).index(match[1])]
       self.description = match[2].strip()
       self._parse_tag(match[3])
@@ -100,28 +100,36 @@ class Todo:
   file_extension = '.todo'
   header_date_format = '%m/%d/%Y'
   header_date_pattern = r'(\d{2}/\d{2}/\d{4})'
+  section_header_pattern = r'^\s*(\w+:)$'
 
   def __init__(self, sdate=None):
     self._header = ''
     self._sdate = sdate
     self.tasks = []
+    self.sections = []
 
   def __str__(self):
     header = self.get_header_string()
-    tasks = self.get_tasks_and_sections_string(sort='priority')
-    return header + tasks
+    content = self.get_content(sort='priority')
+    return header + content
 
   def parse(self, lines):
-    first_line = True
+    self._header = lines.pop(0).strip()
+    i = 0
     for line in lines:
-      line = line.strip()
-      if not first_line:
-        task = Task()
-        task.parse(line)
-        self.tasks.append(task)
-      else:
-        self._header = line
-        first_line = False
+      if re.search(self.section_header_pattern, line):
+        section = TodoSection()
+        section.parse(lines[i:])
+        self.sections.append(section)
+        break
+      i += 1
+    self.parse_tasks(lines[:i])
+
+  def parse_tasks(self, lines):
+    for line in lines:
+      task = Task()
+      task.parse(line)
+      self.append(task)
 
   def append(self, task):
     self.tasks.append(task)
@@ -129,30 +137,29 @@ class Todo:
   def get_header_string(self):
     return f'{self.header}\n'
 
-  def get_tasks_string(self):
-    return ''.join([ str(task) for task in self.tasks ])
-
-  def get_tasks_and_sections_string(self, sort=None):
+  def get_content(self, sort=None):
     tasks = sorted(self.tasks, key=lambda t: priorityd[t.priority]) if sort == 'priority' else self.tasks
-    recurring_tasks = [ task for task in tasks if task.recurring ]
-    non_recurring_tasks = [ task for task in tasks if not task.recurring ]
-    strresult = ''.join([ str(task) for task in non_recurring_tasks ])
-    if len(recurring_tasks) > 0:
-      recurring_section = TodoSection('Recurring', recurring_tasks)
-      strresult += str(recurring_section)
-    return strresult
+    sresult = self._get_list_string(tasks)
+    for section in self.sections:
+      sresult += str(section)
+    return sresult
+
+  def get_tasks_string(self):
+    return self._get_list_string(self.tasks)
+
+  def _get_list_string(self, li):
+    return ''.join([ str(it) for it in li ])
 
 
-class TodoSection:
-  def __init__(self, header='', tasks=None, level=1):
-    self.header = header
-    for task in tasks: task.level = level
-    self.tasks =  tasks if tasks is not None else []
+class TodoSection(Todo):
+  def __init__(self, header='', level=1):
+    super().__init__()
+    self._header = header
     self.level = level
 
   def __str__(self):
     task_lines = [ f'{self.indent}{str(task)}' for task in self.tasks]
-    return f'{self.indent}{self.header}:\n' + ''.join(task_lines)
+    return f'{self.indent}{self._header}\n' + ''.join(task_lines)
 
   @property
   def indent(self):
@@ -290,7 +297,7 @@ class ArchiveTodo():
     if task.timestamp:
       pdate = task.timestamp.date()
     todos_on_date = [ t for t in self.todos if t.sdate == pdate ]
-    if len(todos_on_date) > 0:
+    if todos_on_date:
       todos_on_date[0].append(task)
     else:
       todo = DailyTodo(pdate)
