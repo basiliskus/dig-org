@@ -1,6 +1,5 @@
 import re
 import calendar
-# from enum import Enum
 from pathlib import Path
 from datetime import datetime, date, timedelta
 
@@ -13,8 +12,6 @@ TASK_TIMESTAMP = r'(%y-%m-%d %H:%M)'
 
 DAY_HEADER_FORMAT = 'Day of %m/%d/%Y:'
 WEEK_HEADER_FORMAT = '%m/%d'
-
-today = datetime.today().date()
 
 statusd = {
   'pending': '[ ]',
@@ -81,6 +78,10 @@ class Task:
   def is_completed(self):
     return self.status == 'completed'
 
+  def mark_pending(self):
+    self.status = 'pending'
+    self.timestamp = None
+
   def _parse_tag(self, tag):
     if not tag: return
     if tag[1:] in priorityd.keys():
@@ -97,7 +98,6 @@ class Task:
 
 class Todo:
 
-  file_extension = '.todo'
   header_date_format = '%m/%d/%Y'
   header_date_pattern = r'(\d{2}/\d{2}/\d{4})'
   section_header_pattern = r'^\s*(\w+:)$'
@@ -105,6 +105,7 @@ class Todo:
   def __init__(self, sdate=None):
     self._header = ''
     self._sdate = sdate
+    # self.logger = logger
     self.tasks = []
     self.sections = []
 
@@ -112,6 +113,31 @@ class Todo:
     header = self.get_header_string()
     content = self.get_content(sort='priority')
     return header + content
+
+  def load(self, fpath):
+    with open(fpath) as file:
+      lines = file.readlines()
+      self.parse(lines)
+
+  def update(self, archive_todo):
+    self._header = self.get_header(self._sdate)
+    self._update_tasks(self, archive_todo)
+    for section in self.sections:
+      self._update_tasks(section, archive_todo)
+
+  def _update_tasks(self, todo, archive_todo):
+    for task in todo.tasks:
+      if task.recurring:
+        task.mark_pending()
+      elif task.is_completed():
+        is_weekly = isinstance(todo, WeeklyTodo)
+        # self.logger.info(f"archiving task: '{str(task).strip()}'")
+        archive_todo.append(task, self.sdate, is_weekly)
+        todo.tasks.remove(task)
+
+  def write(self, fpath):
+    with open(fpath, 'w') as file:
+      file.write(self.__str__())
 
   def parse(self, lines):
     self._header = lines.pop(0).strip()
@@ -177,8 +203,8 @@ class DailyTodo(Todo):
     if self._header:
       return self._header
     if self._sdate:
-      return self._sdate.strftime(self.header_format.format(self.header_date_format))
-    raise ValueError('no header defined')
+      return self.get_header(self._sdate)
+    return None
 
   @property
   def sdate(self):
@@ -191,13 +217,8 @@ class DailyTodo(Todo):
         return datetime.strptime(match[1], self.header_date_format).date()
     return None
 
-  @property
-  def fname(self):
-    return self.sdate.strftime(self.fname_format)
-
-  @staticmethod
-  def parse_fpath(fpath):
-    return datetime.strptime(fpath.stem, self.fname_format).date()
+  def get_header(self, sdate):
+    return sdate.strftime(self.header_format.format(self.header_date_format))
 
 
 class WeeklyTodo(Todo):
@@ -207,12 +228,19 @@ class WeeklyTodo(Todo):
   fname_format = '{}-week-{}'
   fname_pattern = r'(\d+-\d+)-week-(\d+)'
 
+  def get_header(self, sdate):
+    edate = self.get_edate(sdate)
+    return self.header_format.format(sdate.strftime(self.header_date_format), edate.strftime(self.header_date_format))
+
+  def get_edate(self, sdate):
+    return sdate + timedelta(days=6)
+
   @property
   def header(self):
     if self._header:
       return self._header
     if self._sdate:
-      return self.header_format.format(self._sdate.strftime(self.header_date_format), self.edate.strftime(self.header_date_format))
+      return self.get_header(self._sdate)
     return None
 
   @property
@@ -228,11 +256,8 @@ class WeeklyTodo(Todo):
 
   @property
   def edate(self):
-    return self.sdate + timedelta(days=6) if self.sdate else None
-
-  @property
-  def fname(self):
-    return self.fname_format.format(self.sdate.strftime(self.fname_date_format), self.month_week_number)
+    if not self.sdate: return None
+    return self.get_edate(self.sdate)
 
   @property
   def month_week_number(self):
@@ -261,10 +286,26 @@ class ArchiveTodo():
 
   header_format = '%m/%d/%Y:'
   header_pattern = r'(\d{2}/\d{2}/\d{4}:)'
-  archive_fname = 'archive'
 
   def __init__(self):
     self.todos = []
+
+  def __str__(self):
+    svalue = ''
+    for todo in sorted(self.todos, key=lambda t: t.sdate):
+      header = todo.sdate.strftime(self.header_format)
+      svalue += f'{header}\n'
+      svalue += todo.get_tasks_string()
+    return svalue
+
+  def load(self, fpath):
+    with open(fpath) as file:
+      lines = file.readlines()
+      self.parse(lines)
+
+  def write(self, fpath):
+    with open(fpath, 'w') as file:
+      file.write(self.__str__())
 
   def parse(self, lines):
     first_line = True
@@ -283,14 +324,6 @@ class ArchiveTodo():
         todo.tasks.append(task)
     self.todos.append(todo)
 
-  def __str__(self):
-    svalue = ''
-    for todo in sorted(self.todos, key=lambda t: t.sdate):
-      header = todo.sdate.strftime(self.header_format)
-      svalue += f'{header}\n'
-      svalue += todo.get_tasks_string()
-    return svalue
-
   def append(self, task, pdate, is_weekly=False):
     if is_weekly:
       task.tags.insert(0, WEEKLY_TAG)
@@ -303,7 +336,3 @@ class ArchiveTodo():
       todo = DailyTodo(pdate)
       todo.append(task)
       self.todos.append(todo)
-
-  @property
-  def fname(self):
-    return self.archive_fname;

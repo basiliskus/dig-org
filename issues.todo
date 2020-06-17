@@ -14,8 +14,8 @@
  [x] rename project to 'task-org' @done (20-06-08 10:59)
  [x] sort taks by priority @done (20-06-11 16:18)
  [ ] add cli options to:
-   [ ] create files
    [ ] add tasks
-   [ ] parse files: sort and add sections
+   [ ] update files: sort and add sections
  [ ] pick and add license
  [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
+ [x] change today's file name to today.md and this week's file name to this-week.md @done (20-06-15 23:36)

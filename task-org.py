@@ -27,103 +27,44 @@ logger = log.get_logger(script_name, log_path=log_path)
 today = datetime.today().date()
 tomorrow = today + timedelta(days=1)
 
+TODO_FEXT = '.todo'
+TODAY_FNAME = 'today'
+TOMORROW_FNAME = 'tomorrow'
+THIS_WEEK_FNAME = 'this-week'
+NEXT_WEEK_FNAME = 'next-week'
+ARCHIVE_FNAME = 'archive'
+
 
 def main(args):
 
   if args['test']:
     log.remove_file_handler(logger)
 
-  todo_files = [f for f in todo_path.iterdir() if f.suffix == Todo.file_extension]
-  cleanup_unused_files(todo_files, args['test'])
-
-  # Create today's todo file
-  today_todo = DailyTodo(today)
-  create_file(today_todo, args['test'])
-
-  # Create next week's todo file
-  future_day = today + timedelta(days=7)
-  next_week_first_day = WeeklyTodo.get_first_day_of_week(future_day)
-  next_week_todo = WeeklyTodo(next_week_first_day)
-  create_file(next_week_todo, args['test'])
-
-  # Cleanup daily tasks
-  today_todo = DailyTodo(today)
-  day_files = [ fpath for fpath in todo_files if re.search(DailyTodo.fname_pattern, fpath.stem) ]
-  day_todos = [ t for t in extract_todos(day_files, DailyTodo) if t.sdate <  today ]
-  archive_fpath = get_fpath(ArchiveTodo.archive_fname, fpath=archive_path)
-  try:
-    logger.debug('about to process daily todo')
-    update_todos(day_todos, today_todo, args['test'])
-  except Exception as e:
-    logger.exception(e)
-
-  # Cleanup weekly tasks
-  weekly_todo = WeeklyTodo(today)
-  first_day_of_week = WeeklyTodo.get_first_day_of_week(today)
-  week_files = [ fpath for fpath in todo_files if re.search(WeeklyTodo.fname_pattern, fpath.stem) ]
-  week_todos = [ t for t in extract_todos(week_files, WeeklyTodo) if t.iso_week_number < WeeklyTodo.get_iso_week_number(today) ]
-  try:
-    logger.debug('about to process weekly todo')
-    update_todos(week_todos, weekly_todo, args['test'])
-  except Exception as e:
-    logger.exception(e)
-
-
-def create_file(todo, test):
-  fpath = get_fpath(todo.fname)
-  if not fpath.exists():
-    logger.info(f"creating file: '{fpath}'")
-    write_todo(todo, fpath, test)
-  else:
-    logger.info(f"file '{fpath}' already exists")
-
-def cleanup_unused_files(files, test):
-  for fpath in files:
-    try:
-      file_line_count = len(open(fpath).readlines())
-      if file_line_count < 2:
-        if test: continue
-        backup_or_delete(fpath, test)
-    except Exception as e:
-      logger.exception(e)
-
-def update_todos(todos, current_todo, test):
   archive_todo = ArchiveTodo()
-  current_fpath = get_fpath(current_todo.fname)
-  load_todo(current_todo, current_fpath)
-  archive_fpath = get_fpath(archive_todo.fname, fpath=archive_path)
-  load_todo(archive_todo, archive_fpath)
+  archive_fpath = get_fpath(ARCHIVE_FNAME, folder=archive_path)
+  archive_todo.load(archive_fpath)
 
-  for todo in todos:
-    update_tasks(todo.tasks, current_todo, archive_todo)
-    for section in todo.sections:
-      section_todo = TodoSection(section._header)
-      update_tasks(section.tasks, section_todo, archive_todo)
-      current_todo.sections.append(section_todo)
+  # Update daily tasks
+  today_todo = DailyTodo(today)
+  today_fpath = get_fpath(TODAY_FNAME)
+  today_todo.load(today_fpath)
 
-    try:
-      fpath = get_fpath(todo.fname)
-      backup_or_delete(fpath, test)
-    except Exception as e:
-      logger.exception(e)
+  logger.debug('about to update daily todo')
+  today_todo.update(archive_todo)
 
-  try:
-    write_todo(current_todo, current_fpath, test)
-    write_todo(archive_todo, archive_fpath, test)
-  except Exception as e:
-    logger.exception(e)
+  write_todo(today_todo, today_fpath, args['test'])
+  write_todo(archive_todo, archive_fpath, args['test'])
 
-def update_tasks(tasks, todo, archive_todo):
-  for task in tasks:
-    if task.is_completed() and not task.recurring:
-      is_weekly = isinstance(todo, WeeklyTodo)
-      logger.info(f"archiving task: '{str(task).strip()}'")
-      archive_todo.append(task, todo.sdate, is_weekly)
-    else:
-      if task.recurring:
-        task = Task('pending', task.description, recurring=True)
-      logger.info(f"moving task to current todo: '{str(task).strip()}'")
-      todo.append(task)
+  # Update weekly tasks
+  weekly_todo = WeeklyTodo(today)
+  weekly_fpath = get_fpath(THIS_WEEK_FNAME)
+  weekly_todo.load(weekly_fpath)
+
+  logger.debug('about to update weekly todo')
+  weekly_todo.update(archive_todo)
+
+  write_todo(weekly_todo, weekly_fpath, args['test'])
+  write_todo(archive_todo, archive_fpath, args['test'])
 
 def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':
@@ -137,35 +78,18 @@ def backup_or_delete(fpath, test, action='backup'):
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
 
-def extract_todos(files, tclass):
-  day_todos = []
-  for fpath in files:
-    try:
-      todo = tclass()
-      load_todo(todo, fpath)
-      day_todos.append(todo)
-    except Exception as e:
-      logger.exception(e)
-  return day_todos
-
-def load_todo(todo, fpath):
-  with open(fpath) as file:
-    lines = file.readlines()
-    todo.parse(lines)
-
 def write_todo(todo, fpath, test=False):
   logger.info(f"writing file '{fpath}'")
-  if test:
+  if not test:
+    try:
+      todo.write(fpath)
+    except Exception as e:
+      logger.exception(e)
+  else:
     logger.debug(str(todo))
-    return
-  try:
-    with open(fpath, 'w') as file:
-      file.write(str(todo))
-  except Exception as e:
-    logger.exception(e)
 
-def get_fpath(fname, fpath=todo_path):
-  return fpath / f'{fname}{Todo.file_extension}'
+def get_fpath(fname, folder=todo_path):
+  return folder / f'{fname}{TODO_FEXT}'
 
 
 def get_parser():
