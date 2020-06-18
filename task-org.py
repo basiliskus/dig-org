@@ -66,6 +66,7 @@ def main(args):
   write_todo(weekly_todo, weekly_fpath, args['test'])
   write_todo(archive_todo, archive_fpath, args['test'])
 
+
 def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':
     logger.info(f"moving '{fpath.name}' to backup folder '{backup_path}'")

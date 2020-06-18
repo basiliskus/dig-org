@@ -125,16 +125,6 @@ class Todo:
     for section in self.sections:
       self._update_tasks(section, archive_todo)
 
-  def _update_tasks(self, todo, archive_todo):
-    for task in todo.tasks:
-      if task.recurring:
-        task.mark_pending()
-      elif task.is_completed():
-        is_weekly = isinstance(todo, WeeklyTodo)
-        # self.logger.info(f"archiving task: '{str(task).strip()}'")
-        archive_todo.append(task, self.sdate, is_weekly)
-        todo.tasks.remove(task)
-
   def write(self, fpath):
     with open(fpath, 'w') as file:
       file.write(self.__str__())
@@ -172,6 +162,16 @@ class Todo:
 
   def get_tasks_string(self):
     return self._get_list_string(self.tasks)
+
+  def _update_tasks(self, todo, archive_todo):
+    for task in todo.tasks:
+      if task.recurring:
+        task.mark_pending()
+      elif task.is_completed():
+        is_weekly = isinstance(todo, WeeklyTodo)
+        # self.logger.info(f"archiving task: '{str(task).strip()}'")
+        archive_todo.append(task, self.sdate, is_weekly)
+        todo.tasks.remove(task)
 
   def _get_list_string(self, li):
     return ''.join([ str(it) for it in li ])
