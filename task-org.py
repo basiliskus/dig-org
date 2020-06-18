@@ -38,7 +38,7 @@ ARCHIVE_FNAME = 'archive'
 
 def main(args):
 
-  if args['test']:
+  if args['test'] or args['show']:
     log.remove_file_handler(logger)
 
   today_todo = DailyTodo(today)
