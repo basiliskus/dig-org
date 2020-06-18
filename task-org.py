@@ -30,6 +30,7 @@ tomorrow = today + timedelta(days=1)
 TODO_FEXT = '.todo'
 TODAY_FNAME = 'today'
 TOMORROW_FNAME = 'tomorrow'
+CALENDAR_FNAME = 'calendar'
 THIS_WEEK_FNAME = 'this-week'
 NEXT_WEEK_FNAME = 'next-week'
 ARCHIVE_FNAME = 'archive'
@@ -44,11 +45,22 @@ def main(args):
   archive_fpath = get_fpath(ARCHIVE_FNAME, folder=archive_path)
   archive_todo.load(archive_fpath)
 
-  # Update daily tasks
   today_todo = DailyTodo(today)
   today_fpath = get_fpath(TODAY_FNAME)
   today_todo.load(today_fpath)
 
+  # Transfer current tasks to today's todo
+  calendar_todo = ArchiveTodo()
+  calendar_fpath = get_fpath(CALENDAR_FNAME)
+  calendar_todo.load(calendar_fpath)
+  for todo in calendar_todo.todos:
+    if todo.sdate <= tomorrow:
+      for task in todo.tasks:
+        task.priority = 'today'
+        today_todo.append(task)
+      calendar_todo.todos.remove(todo)
+
+  # Update daily tasks
   logger.debug('about to update daily todo')
   today_todo.update(archive_todo)
 
