@@ -15,8 +15,8 @@
  [x] sort taks by priority @done (20-06-11 16:18)
  [ ] add cli options to:
    [ ] add tasks
-   [ ] display tasks for today, this week, next week and future days
-   [ ] update files: sort and add sections
+   [x] display tasks for today, this week, next week and future days @done (20-06-17 21:32)
+   [x] update @done (20-06-17 21:32)
  [ ] pick and add license
  [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
  [x] change today's file name to today.md and this week's file name to this-week.md @done (20-06-15 23:36)

@@ -41,43 +41,67 @@ def main(args):
   if args['test']:
     log.remove_file_handler(logger)
 
-  archive_todo = ArchiveTodo()
-  archive_fpath = get_fpath(ARCHIVE_FNAME, folder=archive_path)
-  archive_todo.load(archive_fpath)
-
   today_todo = DailyTodo(today)
   today_fpath = get_fpath(TODAY_FNAME)
   today_todo.load(today_fpath)
 
-  # Transfer current tasks to today's todo
+  weekly_todo = WeeklyTodo(today)
+  weekly_fpath = get_fpath(THIS_WEEK_FNAME)
+  weekly_todo.load(weekly_fpath)
+
   calendar_todo = ArchiveTodo()
   calendar_fpath = get_fpath(CALENDAR_FNAME)
   calendar_todo.load(calendar_fpath)
+
+  archive_todo = ArchiveTodo()
+  archive_fpath = get_fpath(ARCHIVE_FNAME, folder=archive_path)
+  archive_todo.load(archive_fpath)
+
+  if args['update']:
+    update(today_todo, weekly_todo, calendar_todo, archive_todo)
+    write(today_todo, today_fpath, args['test'])
+    write(weekly_todo, weekly_fpath, args['test'])
+    write(calendar_todo, calendar_fpath, args['test'])
+    write(archive_todo, archive_fpath, args['test'])
+
+  if args['show'] == 'today':
+    show(today_todo)
+  elif args['show'] == 'week':
+    show(weekly_todo)
+  elif args['show'] == 'calendar':
+    show(calendar_todo)
+
+
+def update(today_todo, weekly_todo, calendar_todo, archive_todo):
+  # Transfer current tasks to today's todo
+  logger.debug('updating calendar todo')
   for todo in calendar_todo.todos:
-    if todo.sdate <= tomorrow:
+    if todo.sdate <= today:
       for task in todo.tasks:
         task.priority = 'today'
         today_todo.append(task)
       calendar_todo.todos.remove(todo)
 
   # Update daily tasks
-  logger.debug('about to update daily todo')
+  logger.debug('updating daily todo')
   today_todo.update(archive_todo)
 
-  write_todo(today_todo, today_fpath, args['test'])
-  write_todo(archive_todo, archive_fpath, args['test'])
-
   # Update weekly tasks
-  weekly_todo = WeeklyTodo(today)
-  weekly_fpath = get_fpath(THIS_WEEK_FNAME)
-  weekly_todo.load(weekly_fpath)
-
-  logger.debug('about to update weekly todo')
+  logger.debug('updating weekly todo')
   weekly_todo.update(archive_todo)
 
-  write_todo(weekly_todo, weekly_fpath, args['test'])
-  write_todo(archive_todo, archive_fpath, args['test'])
+def write(todo, fpath, test=False):
+  logger.info(f"writing file '{fpath}'")
+  if not test:
+    try:
+      todo.write(fpath)
+    except Exception as e:
+      logger.exception(e)
+  else:
+    logger.debug(str(todo))
 
+def show(todo):
+  logger.info(str(todo))
 
 def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':
@@ -91,16 +115,6 @@ def backup_or_delete(fpath, test, action='backup'):
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
 
-def write_todo(todo, fpath, test=False):
-  logger.info(f"writing file '{fpath}'")
-  if not test:
-    try:
-      todo.write(fpath)
-    except Exception as e:
-      logger.exception(e)
-  else:
-    logger.debug(str(todo))
-
 def get_fpath(fname, folder=todo_path):
   return folder / f'{fname}{TODO_FEXT}'
 
@@ -109,6 +123,18 @@ def get_parser():
   parser = argparse.ArgumentParser(
     description='Generate and manage ToDo files',
     formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    )
+  parser.add_argument(
+    '-u',
+    '--update',
+    action='store_true',
+    help = 'Update tasks to current date and archive completed tasks'
+    )
+  parser.add_argument(
+    '-s',
+    '--show',
+    choices = ['today', 'week', 'calendar' ],
+    help = 'Show daily, weekly or calendar tasks'
     )
   parser.add_argument(
     '-t',
