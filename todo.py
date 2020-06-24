@@ -164,6 +164,7 @@ class Todo:
     return self._get_list_string(self.tasks)
 
   def _update_tasks(self, todo, archive_todo):
+    rtasks = []
     for task in todo.tasks:
       if task.recurring:
         task.mark_pending()
@@ -171,7 +172,8 @@ class Todo:
         is_weekly = isinstance(todo, WeeklyTodo)
         # self.logger.info(f"archiving task: '{str(task).strip()}'")
         archive_todo.append(task, self.sdate, is_weekly)
-        todo.tasks.remove(task)
+        rtasks.append(task)
+    todo.tasks = [ t for t in todo.tasks if t not in rtasks ]
 
   def _get_list_string(self, li):
     return ''.join([ str(it) for it in li ])
