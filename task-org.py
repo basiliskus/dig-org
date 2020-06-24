@@ -13,15 +13,13 @@ from todo import Task, Todo, TodoSection, DailyTodo, WeeklyTodo, ArchiveTodo
 # \Packages\PlainTasks\PlainTasks.sublime-completions file:
 # { "trigger": "r\t@recurring", "contents": "@recurring"}
 
-global_config = config.get_config('global')
-log_path = Path(global_config['paths']['log_path'])
+config = config.get_config('config')
+log_path = Path(config['global']['log_path'])
+todo_path = Path(config['task-org']['todo_path'])
+backup_path = Path(config['task-org']['backup_path'])
+archive_path = Path(config['task-org']['archive_path'])
 
 script_name = utils.get_script_name(__file__)
-config = config.get_config(script_name)
-todo_path = Path(config['paths']['todo_path'])
-backup_path = Path(config['paths']['backup_path'])
-archive_path = Path(config['paths']['archive_path'])
-
 logger = log.get_logger(script_name, log_path=log_path)
 
 today = datetime.today().date()
