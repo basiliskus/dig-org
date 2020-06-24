@@ -322,6 +322,7 @@ class ArchiveTodo():
         todo.tasks.append(task)
 
   def append(self, task, pdate, is_weekly=False):
+    task.priority = None    # remove unnecesary tag
     if is_weekly:
       task.tags.insert(0, WEEKLY_TAG)
     if task.timestamp:
