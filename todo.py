@@ -310,21 +310,16 @@ class ArchiveTodo():
       file.write(self.__str__())
 
   def parse(self, lines):
-    first_line = True
     for line in lines:
       match = re.search(self.header_pattern, line)
       if match:
-        if not first_line:
-          self.todos.append(todo)
-        else:
-          first_line = False
         tdate = datetime.strptime(match[1], self.header_format).date()
         todo = DailyTodo(tdate)
+        self.todos.append(todo)
       else:
         task = Task()
         task.parse(line)
         todo.tasks.append(task)
-    self.todos.append(todo)
 
   def append(self, task, pdate, is_weekly=False):
     if is_weekly:
