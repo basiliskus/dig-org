@@ -26,7 +26,7 @@ bkm-org:
  [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
  [ ] categorize links & manual cleanup
  [ ] maintainance & unit test
-   [ ] link checker
+   [x] link checker @done (20-06-24 21:14)
    [ ] title update
  [ ] export to firefox and chrome
  [ ] import from firefox and chrome
