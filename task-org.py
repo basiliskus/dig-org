@@ -138,7 +138,7 @@ def get_parser():
     '-t',
     '--test',
     action='store_true',
-    help = 'Test run. No files will be moofied'
+    help = 'Test run. No files will be modified'
     )
   return parser
 
