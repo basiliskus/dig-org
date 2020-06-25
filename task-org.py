@@ -1,4 +1,3 @@
-import re
 import argparse
 import calendar
 from pathlib import Path
@@ -119,7 +118,7 @@ def get_fpath(fname, folder=todo_path):
 
 def get_parser():
   parser = argparse.ArgumentParser(
-    description='Generate and manage ToDo files',
+    description='ToDo file manager',
     formatter_class = argparse.ArgumentDefaultsHelpFormatter
     )
   parser.add_argument(
