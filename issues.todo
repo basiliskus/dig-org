@@ -42,6 +42,9 @@ Bookmark Organizer (bkm-org):
    [ ] add bookmark, tags, categories
    [ ] get links by tag
  [ ] write tests
+   [ ] validate json and markdown files
+   [ ] assert md <=> json works
+   [ ] assert uniqueness
  [ ] export to firefox and chrome
  [ ] import from firefox and chrome
  [x] use tags/labels @done (20-06-25 23:50)
