@@ -24,10 +24,10 @@ def get_logger(fname, log_path='logs', file_log_level='INFO', console_log_level=
     # create file handler
     log_fpath = f'{log_path}/{fname}{LOG_EXTENSION}'
     if file_handler_type == 'rotating':
-      fh = TimedRotatingFileHandler(log_fpath, when='midnight')
+      fh = TimedRotatingFileHandler(log_fpath, when='midnight', encoding='utf-8')
       fh.suffix = fh_suffix
     else:
-      fh = logging.FileHandler(log_fpath)
+      fh = logging.FileHandler(log_fpath, encoding='utf-8')
     fh.setLevel(getattr(logging, file_log_level))
     fh.setFormatter(logging.Formatter(fh_format, date_format))
     logger.addHandler(fh)
