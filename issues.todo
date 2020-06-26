@@ -1,4 +1,7 @@
-task-org:
+General:
+  [ ] create tag ontology system
+  [ ] add article/reading bookmark system
+Task Organizer (task-org):
  [x] add file consolidation
    [x] archive past day's completed tasks in single 'archive-daily.todo' file
    [x] move daily pending past tasks to today's todo file
@@ -22,12 +25,23 @@ task-org:
  [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
  [x] change today's file name to today.md and this week's file name to this-week.md @done (20-06-15 23:36)
  [x] handle future tasks @done (20-06-17 20:55)
-bkm-org:
+Bookmark Organizer (bkm-org):
  [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
+ [x] store in json file @done (20-06-25 16:05)
+ [x] create bookmark classes @done (20-06-25 23:48)
+ [x] update markdown with json and viceversa @done (20-06-25 23:49)
  [ ] categorize links & manual cleanup
- [ ] maintainance & unit test
+ [ ] update links
+   [ ] url
+   [ ] title
+ [ ] maintenance
    [x] link checker @done (20-06-24 21:14)
-   [ ] title update
+   [x] title checker @done (20-06-25 16:06)
+ [ ] add cli options to:
+   [ ] validate links: url, title
+   [ ] add bookmark, tags, categories
+   [ ] get links by tag
+ [ ] write tests
  [ ] export to firefox and chrome
  [ ] import from firefox and chrome
- [ ] use tags/labels
+ [x] use tags/labels @done (20-06-25 23:50)
