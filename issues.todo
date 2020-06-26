@@ -38,7 +38,7 @@ Bookmark Organizer (bkm-org):
    [x] link checker @done (20-06-24 21:14)
    [x] title checker @done (20-06-25 16:06)
  [ ] add cli options to:
-   [ ] validate links: url, title
+   [x] validate links: url, title @done (20-06-26 16:55)
    [ ] add bookmark, tags, categories
    [ ] get links by tag
  [ ] write tests
