@@ -2,8 +2,17 @@ import re
 import bs4
 import json
 import requests
+from pathlib import Path
 from datetime import date
 
+from modules import log
+from modules import utils
+from modules import config
+
+
+config = config.get_config('config')
+log_path = Path(config['global']['log_path'])
+logger = log.get_logger(utils.get_script_name(__file__), log_path=log_path)
 
 class Bookmark:
 
@@ -173,6 +182,8 @@ class BookmarkCollection:
 
       except Exception as e:
         b.last_request = LastHttpRequest(False)
+        logger.debug(f"couldn't connect to: {b.url}")
+        logger.exception(e)
 
   def update_urls(self):
     for b in self.bookmarks:
