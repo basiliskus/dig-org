@@ -47,4 +47,5 @@ Bookmark Organizer (bkm-org):
    [ ] assert uniqueness
  [ ] export to firefox and chrome
  [ ] import from firefox and chrome
+ [ ] create chrome/firefox plugin to sync (import/export) and open webpage with bookmarks
  [x] use tags/labels @done (20-06-25 23:50)
