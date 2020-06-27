@@ -1,6 +1,7 @@
 General:
   [ ] create tag ontology system
   [ ] add article/reading bookmark system
+  [ ] add music playlist organizer
 Task Organizer (task-org):
  [x] add file consolidation
    [x] archive past day's completed tasks in single 'archive-daily.todo' file
