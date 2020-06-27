@@ -53,14 +53,14 @@ def get_parser():
   parser = argparse.ArgumentParser(
     description='Bookmark file manager',
     formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    )
+  )
   parser.add_argument(
     '-vl',
     '--validate-links',
     dest = 'validatelinks',
     action='store_true',
     help = 'Validate links'
-    ),
+  ),
   parser.add_argument(
     '-sc',
     '--status-code',
@@ -70,7 +70,7 @@ def get_parser():
     nargs='?',
     const=1,
     help = 'Get URLs by status code. Use 0 to get URLs which failed to connect'
-    ),
+  ),
   parser.add_argument(
     '-t',
     '--tag',
@@ -79,14 +79,14 @@ def get_parser():
     nargs='?',
     const='all',
     help = 'Get URLs by tag'
-    ),
+  ),
   parser.add_argument(
     '-u',
     '--update',
     action='store',
     choices = [ 'url', 'md', 'json' ],
     help = 'Update json file'
-    )
+  )
   return parser
 
 
