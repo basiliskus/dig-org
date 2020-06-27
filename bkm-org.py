@@ -44,6 +44,10 @@ def main(args):
       bc.write_json(json_fpath)
     elif args['update'] == 'md':
       bc.write_md(md_fpath)
+    elif args['update'] == 'json':
+      bc.load_md(md_fpath)
+      bc.write_json(json_fpath)
+
 
 def get_parser():
   parser = argparse.ArgumentParser(
@@ -80,7 +84,7 @@ def get_parser():
     '-u',
     '--update',
     action='store',
-    choices = [ 'url', 'md' ],
+    choices = [ 'url', 'md', 'json' ],
     help = 'Update json file'
     )
   return parser

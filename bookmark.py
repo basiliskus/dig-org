@@ -77,11 +77,21 @@ class BookmarkCollection:
     for line in lines:
       link_match = re.search(self.link_pattern, line)
       if link_match:
-        bookmark = Bookmark(link_match[2], link_match[1])
-        tags = [ t.replace(' ', '-').lower() for t in cats ]
-        bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
-        bookmark.categories = ' > '.join(cats)
-        self.bookmarks.append(bookmark)
+        url = link_match[2]
+        title = link_match[1]
+        bookmark = self.find_by_url(url)
+        if bookmark:
+          bookmark.title = title
+        else:
+          bookmark = self.find_by_title(title)
+          if bookmark:
+            bookmark.url = url
+          else:
+            bookmark = Bookmark(url, title)
+            self.bookmarks.append(bookmark)
+            tags = [ t.replace(' ', '-').lower() for t in cats ]
+            bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+            bookmark.categories = ' > '.join(cats)
         continue
       title_match = re.search(self.title_pattern, line)
       if title_match:
@@ -100,6 +110,12 @@ class BookmarkCollection:
   def write_md(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
       wf.write(f'{self.md}\n')
+
+  def find_by_url(self, url):
+    return next((b for b in self.bookmarks if b.url == url), None)
+
+  def find_by_title(self, title):
+    return next((b for b in self.bookmarks if b.title == title), None)
 
   @property
   def json(self):
