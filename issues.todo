@@ -41,6 +41,7 @@ Bookmark Organizer (bkm-org):
    [x] validate links: url, title @done (20-06-26 16:55)
    [ ] add bookmark, tags, categories
    [x] get links by tag @done (20-06-26 18:01)
+ [x] choose what to validate for each bookmark: url, title @done (20-06-27 15:22)
  [ ] write tests
    [ ] validate json and markdown files
    [ ] assert md <=> json works

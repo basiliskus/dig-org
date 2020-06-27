@@ -21,6 +21,8 @@ def main(args):
 
   bc = BookmarkCollection()
   bc.load_json(json_fpath)
+  bc.write_json(json_fpath)
+  exit()
 
   if args['validatelinks']:
     bc.validate()

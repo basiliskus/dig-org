@@ -21,6 +21,7 @@ class Bookmark:
     self.title = title
     self.tags = tags
     self.categories = categories
+    self.validate = [ 'url', 'title' ]
     self.last_request = LastHttpRequest(False)
     self.history = []
 
@@ -29,6 +30,7 @@ class Bookmark:
     self.title = data['title']
     self.tags = data['tags']
     self.categories = data['categories']
+    self.validate = data['validate']
     if 'lastHttpRequest' in data:
       self.last_request.parse(data['lastHttpRequest'])
     else:
@@ -46,6 +48,7 @@ class Bookmark:
       "title": self.title,
       "tags": self.tags,
       "categories": self.categories,
+      "validate": self.validate,
       "lastHttpRequest": self.last_request.json,
       "history": self.history
     }
@@ -171,14 +174,15 @@ class BookmarkCollection:
         b.last_request = LastHttpRequest(True, r.status_code)
 
         # get redirect url
-        if r.url != b.url:
+        if 'url' in b.validate and r.url != b.url:
           b.last_request.redirect = r.url
 
         # get title
-        html = bs4.BeautifulSoup(r.text, 'html.parser')
-        t = html.title.text.strip() if html.title else ''
-        if r.status_code == 200 and b.title != t:
-          b.last_request.title = t
+        if 'title' in b.validate:
+          html = bs4.BeautifulSoup(r.text, 'html.parser')
+          t = html.title.text.strip() if html.title else ''
+          if r.status_code == 200 and b.title != t:
+            b.last_request.title = t
 
       except Exception as e:
         b.last_request = LastHttpRequest(False)
