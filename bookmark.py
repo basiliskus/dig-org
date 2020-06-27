@@ -176,7 +176,7 @@ class BookmarkCollection:
 
         # get title
         html = bs4.BeautifulSoup(r.text, 'html.parser')
-        t = html.title.text.strip()
+        t = html.title.text.strip() if html.title else ''
         if r.status_code == 200 and b.title != t:
           b.last_request.title = t
 
