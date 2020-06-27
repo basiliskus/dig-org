@@ -56,6 +56,14 @@ class BookmarkCollection:
   def __init__(self):
     self.bookmarks = []
 
+  def add(self, bookmark):
+    self.bookmarks.append(bookmark)
+
+  def delete(self, bookmark):
+    found = self.find_by_url(bookmark.url)
+    if found:
+      self.bookmarks.remove(found)
+
   def load_json(self, fpath):
     with open(fpath, encoding='utf-8') as file:
       data = json.load(file)
@@ -70,11 +78,13 @@ class BookmarkCollection:
     for url in data:
       bookmark = Bookmark()
       bookmark.parse_json(data[url])
-      self.bookmarks.append(bookmark)
+      self.add(bookmark)
 
   def parse_md(self, lines):
     cats = []
+    bkms = self.bookmarks.copy()
     for line in lines:
+      # match bookmark line
       link_match = re.search(self.link_pattern, line)
       if link_match:
         url = link_match[2]
@@ -82,17 +92,20 @@ class BookmarkCollection:
         bookmark = self.find_by_url(url)
         if bookmark:
           bookmark.title = title
+          bkms.remove(bookmark)
         else:
           bookmark = self.find_by_title(title)
           if bookmark:
             bookmark.url = url
+            bkms.remove(bookmark)
           else:
             bookmark = Bookmark(url, title)
-            self.bookmarks.append(bookmark)
+            self.add(bookmark)
             tags = [ t.replace(' ', '-').lower() for t in cats ]
             bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
             bookmark.categories = ' > '.join(cats)
         continue
+      # match title line
       title_match = re.search(self.title_pattern, line)
       if title_match:
         category = title_match[2]
@@ -103,9 +116,14 @@ class BookmarkCollection:
         else:
           cats.append(category)
 
+    # remove missing bookmarks
+    for b in bkms:
+      self.delete(b)
+
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
       json.dump(self.json, wf, indent=2, ensure_ascii=False)
+      wf.write('\n')
 
   def write_md(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
