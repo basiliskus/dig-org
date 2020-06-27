@@ -40,7 +40,7 @@ Bookmark Organizer (bkm-org):
  [ ] add cli options to:
    [x] validate links: url, title @done (20-06-26 16:55)
    [ ] add bookmark, tags, categories
-   [ ] get links by tag
+   [x] get links by tag @done (20-06-26 18:01)
  [ ] write tests
    [ ] validate json and markdown files
    [ ] assert md <=> json works

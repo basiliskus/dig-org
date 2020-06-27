@@ -13,7 +13,6 @@ class Bookmark:
     self.categories = categories
     self.last_request = LastHttpRequest(False)
     self.history = []
-    # self.status = None
 
   def parse_json(self, data):
     self.url = data['url']
@@ -107,7 +106,6 @@ class BookmarkCollection:
   def md(self):
     lines = []
     cats = []
-    # for bk in sorted(self.bookmarks, key=lambda b: b.categories):
     for bk in self.bookmarks:
       titles = bk.categories.split(' > ')
       for i, t in enumerate(titles, start=1):
@@ -123,26 +121,51 @@ class BookmarkCollection:
         r = requests.get(b.url)
         b.last_request = LastHttpRequest(True, r.status_code)
 
-        # b.status = r.status_code
-        # print(f'{b.url}: {b.status}')
-
         # get redirect url
         if r.url != b.url:
           b.last_request.redirect = r.url
-          # logger.info(f"url: {b.url} => {r.url}")
 
         # get title
         html = bs4.BeautifulSoup(r.text, 'html.parser')
         t = html.title.text.strip()
         if r.status_code == 200 and b.title != t:
           b.last_request.title = t
-          # logger.info(f"title: {b.title} => {t}")
 
       except Exception as e:
         b.last_request = LastHttpRequest(False)
 
-  def get_bookmarks(self, code):
-    return [ b for b in self.bookmarks if b.last_request.status == code ]
+  def get_bookmarks(self, by, value):
+    if by == 'status':
+      return [ b for b in self.bookmarks if b.last_request.status == value ]
+    if by == 'tag':
+      return [ b for b in self.bookmarks if value in b.tags ]
+
+  def get_urls(self, value, by):
+    return [ b.url for b in self.get_bookmarks(value, by) ]
+
+  def get_grouped_bookmarks_str(self, by):
+    if by == 'status':
+      values = list(set([ b.last_request.status for b in self.bookmarks if b.last_request.status ]))
+      get_title = lambda status: self._get_grouped_status_title_str(status)
+    elif by == 'tag':
+      tags = [ b.tags for b in self.bookmarks ]
+      values = list(set([ tag for st in tags for tag in st ]))
+      get_title = lambda tag: f'{tag}:'
+
+    response = []
+    for value in sorted(values):
+      title = get_title(value)
+      response.append(title)
+      for b in self.get_bookmarks(by, value):
+        response.append(f'  {b.url}')
+    return '\n'.join(response)
+
+  def _get_grouped_status_title_str(self, status):
+    if status in requests.status_codes._codes:
+      code_name = requests.status_codes._codes[status][0]
+      return f'{status} ({code_name}):'
+    else:
+      return f'{status}:'
 
 
 class LastHttpRequest:

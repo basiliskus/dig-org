@@ -33,26 +33,16 @@ def main(args):
     bc.write_json(bkm_json_fpath)
 
   if args['statuscode']:
-    r = get_urls(bc, args['statuscode'])
-    print(r)
+    if args['statuscode'] != 1:
+      print('\n'.join(bc.get_urls('status', args['statuscode'])))
+    else:
+      print(bc.get_grouped_bookmarks_str('status'))
 
-
-def get_urls(bc, status):
-  if status != 1:
-    urls = [ b.url for b in bc.get_bookmarks(status) ]
-    return '\n'.join(urls)
-  else:
-    response = []
-    codes = list(set([ b.last_request.status for b in bc.bookmarks if b.last_request.status ]))
-    for code in sorted(codes):
-      if code in requests.status_codes._codes:
-        code_name = requests.status_codes._codes[code][0]
-        response.append(f'{code} ({code_name}):')
-      else:
-        response.append(f'{code}:')
-      for b in bc.get_bookmarks(code):
-        response.append(f'  {b.url}')
-    return '\n'.join(response)
+  if args['tag']:
+    if args['tag'] != 'all':
+      print('\n'.join(bc.get_urls('tag', args['tag'])))
+    else:
+      print(bc.get_grouped_bookmarks_str('tag'))
 
 
 def get_parser():
@@ -73,7 +63,16 @@ def get_parser():
     type=int,
     nargs='?',
     const=1,
-    help = 'Check status codes'
+    help = 'Get URLs by status code'
+    ),
+  parser.add_argument(
+    '-t',
+    '--tag',
+    action='store',
+    type=str,
+    nargs='?',
+    const='all',
+    help = 'Get URLs by tag'
     )
   return parser
 
