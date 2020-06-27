@@ -26,7 +26,7 @@ def main(args):
     bc.validate()
     bc.write_json(json_fpath)
 
-  if args['statuscode']:
+  if not args['statuscode'] is None:
     if args['statuscode'] != 1:
       print('\n'.join(bc.get_urls('status', args['statuscode'])))
     else:
@@ -69,7 +69,7 @@ def get_parser():
     type=int,
     nargs='?',
     const=1,
-    help = 'Get URLs by status code'
+    help = 'Get URLs by status code. Use 0 to get URLs which failed to connect'
     ),
   parser.add_argument(
     '-t',

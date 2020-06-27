@@ -181,7 +181,10 @@ class BookmarkCollection:
 
   def get_bookmarks(self, by, value):
     if by == 'status':
-      return [ b for b in self.bookmarks if b.last_request.status == value ]
+      if value == 0:
+        return [ b for b in self.bookmarks if not b.last_request.connected ]
+      else:
+        return [ b for b in self.bookmarks if b.last_request.status == value ]
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
 
@@ -191,6 +194,7 @@ class BookmarkCollection:
   def get_grouped_bookmarks_str(self, by):
     if by == 'status':
       values = list(set([ b.last_request.status for b in self.bookmarks if b.last_request.status ]))
+      values.append(0)    # value 0 represnts urls that failed to connect
       get_title = lambda status: self._get_grouped_status_title_str(status)
     elif by == 'tag':
       tags = [ b.tags for b in self.bookmarks ]
@@ -209,6 +213,8 @@ class BookmarkCollection:
     if status in requests.status_codes._codes:
       code_name = requests.status_codes._codes[status][0]
       return f'{status} ({code_name}):'
+    elif status == 0:
+      return 'Connection Failed:'
     else:
       return f'{status}:'
 
