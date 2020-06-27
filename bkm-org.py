@@ -10,8 +10,8 @@ from bookmark import Bookmark, BookmarkCollection
 
 config = config.get_config('config')
 log_path = Path(config['global']['log_path'])
-bkm_md_fpath = Path(config['bkm-org']['bkm_md_fpath'])
-bkm_json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
+md_fpath = Path(config['bkm-org']['bkm_md_fpath'])
+json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
 script_name = utils.get_script_name(__file__)
 logger = log.get_logger(script_name, log_path=log_path)
@@ -20,11 +20,11 @@ logger = log.get_logger(script_name, log_path=log_path)
 def main(args):
 
   bc = BookmarkCollection()
-  bc.load_json(bkm_json_fpath)
+  bc.load_json(json_fpath)
 
   if args['validatelinks']:
     bc.validate()
-    bc.write_json(bkm_json_fpath)
+    bc.write_json(json_fpath)
 
   if args['statuscode']:
     if args['statuscode'] != 1:
@@ -38,6 +38,12 @@ def main(args):
     else:
       print(bc.get_grouped_bookmarks_str('tag'))
 
+  if args['update']:
+    if args['update'] == 'url':
+      bc.update_urls()
+      bc.write_json(json_fpath)
+    elif args['update'] == 'md':
+      bc.write_md(md_fpath)
 
 def get_parser():
   parser = argparse.ArgumentParser(
@@ -69,6 +75,13 @@ def get_parser():
     nargs='?',
     const='all',
     help = 'Get URLs by tag'
+    ),
+  parser.add_argument(
+    '-u',
+    '--update',
+    action='store',
+    choices = [ 'url', 'md' ],
+    help = 'Update json file'
     )
   return parser
 

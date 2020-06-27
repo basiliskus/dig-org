@@ -2,6 +2,7 @@ import re
 import bs4
 import json
 import requests
+from datetime import date
 
 
 class Bookmark:
@@ -39,6 +40,11 @@ class Bookmark:
       "lastHttpRequest": self.last_request.json,
       "history": self.history
     }
+
+  def update_url(self, url):
+    today = date.today().strftime('%Y-%m-%d')
+    self.history.append({ "date": today, "url": self.url })
+    self.url = url
 
 
 class BookmarkCollection:
@@ -133,6 +139,11 @@ class BookmarkCollection:
 
       except Exception as e:
         b.last_request = LastHttpRequest(False)
+
+  def update_urls(self):
+    for b in self.bookmarks:
+      if b.last_request.redirect:
+        b.update_url(b.last_request.redirect)
 
   def get_bookmarks(self, by, value):
     if by == 'status':
