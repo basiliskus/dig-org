@@ -13,14 +13,8 @@ log_path = Path(config['global']['log_path'])
 bkm_md_fpath = Path(config['bkm-org']['bkm_md_fpath'])
 bkm_json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
-bkm_val_fpath = log_path / 'bookmarks-validation.log'
-bkm_red_fpath = log_path / 'bookmarks-validation-redirect.log'
-
 script_name = utils.get_script_name(__file__)
 logger = log.get_logger(script_name, log_path=log_path)
-
-title_pattern = r'^(#+)\s+(.+)$'
-link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/[\w\d./?=#]+)\)\s*$'
 
 
 def main(args):
@@ -52,13 +46,15 @@ def get_parser():
     )
   parser.add_argument(
     '-vl',
-    '--validatelinks',
+    '--validate-links',
+    dest = 'validatelinks',
     action='store_true',
     help = 'Validate links'
     ),
   parser.add_argument(
     '-sc',
-    '--statuscode',
+    '--status-code',
+    dest = 'statuscode',
     action='store',
     type=int,
     nargs='?',
