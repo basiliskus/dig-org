@@ -53,3 +53,9 @@ Bookmark Organizer (bkm-org):
    [ ] sync (import/export) and open webpage with bookmarks
    [ ] bookmark navigator: go to next/prev website
  [x] use tags/labels @done (20-06-25 23:50)
+ [ ] handle temporary bookmarks
+ [ ] import bookmarks from google.com/bookmarks and del.icio.us
+   [ ] https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/aa753582(v=vs.85)?redirectedfrom=MSDN
+   [ ] https://github.com/bookmarks-tools/bookmarks-parser
+   [ ] https://github.com/FlyingWolFox/Netscape-Bookmarks-File-Parser
+   [ ] https://gist.github.com/devster31/4e8c6548fd16ffb75c02e6f24e27f9b9
