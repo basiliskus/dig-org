@@ -31,18 +31,21 @@ def main(args):
   if args['validatelinks']:
     bc.validate()
     bc.write_json(json_fpath)
+    return
 
   if not args['statuscode'] is None:
     if args['statuscode'] != 1:
       print('\n'.join(bc.get_urls('status', args['statuscode'])))
     else:
       print(bc.get_grouped_bookmarks_str('status'))
+    return
 
   if args['tag']:
     if args['tag'] != 'all':
       print('\n'.join(bc.get_urls('tag', args['tag'])))
     else:
       print(bc.get_grouped_bookmarks_str('tag'))
+    return
 
   if args['update']:
     if args['update'] == 'url':
@@ -53,6 +56,7 @@ def main(args):
     elif args['update'] == 'json':
       bc.load_md(md_fpath)
       bc.write_json(json_fpath)
+    return
 
 
 def get_parser():
