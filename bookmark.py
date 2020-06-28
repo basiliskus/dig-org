@@ -161,7 +161,7 @@ class BookmarkCollection:
   def md(self):
     lines = []
     cats = []
-    for bk in self.bookmarks:
+    for bk in sorted(self.bookmarks, key=lambda b: b.categories):
       titles = bk.categories.split(' > ')
       for i, t in enumerate(titles, start=1):
         if t in cats: continue
