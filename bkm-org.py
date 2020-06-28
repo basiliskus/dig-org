@@ -19,6 +19,12 @@ logger = log.get_logger(script_name, log_path=log_path)
 
 def main(args):
 
+  if args['findduplicates']:
+    bc = BookmarkCollection()
+    bc.load_md(md_fpath)
+    print(bc.duplicate_urls())
+    return
+
   bc = BookmarkCollection()
   bc.load_json(json_fpath)
 
@@ -60,6 +66,13 @@ def get_parser():
     dest = 'validatelinks',
     action='store_true',
     help = 'Validate links'
+  ),
+  parser.add_argument(
+    '-fd',
+    '--find-duplicates',
+    dest = 'findduplicates',
+    action='store_true',
+    help = 'Find duplicates in md file'
   ),
   parser.add_argument(
     '-sc',

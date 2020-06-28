@@ -189,6 +189,10 @@ class BookmarkCollection:
         logger.debug(f"couldn't connect to: {b.url}")
         logger.exception(e)
 
+  def duplicate_urls(self):
+    urls = [ b.url for b in self.bookmarks ]
+    return '\n'.join(set([ u for u in urls if urls.count(u) > 1 ]))
+
   def update_urls(self):
     for b in self.bookmarks:
       if b.last_request.redirect:
