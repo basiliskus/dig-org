@@ -103,15 +103,13 @@ class BookmarkCollection:
         url = link_match[2]
         title = link_match[1]
         if update:
-          bookmark = self.find_by_url(url)
+          bu = self.find_by_url(url)
+          bt = self.find_by_title(title)
+          bookmark = bu if bu else bt
           if bookmark:
-            bookmark.title = title
             bkms.remove(bookmark)
-          else:
-            bookmark = self.find_by_title(title)
-            if bookmark:
-              bookmark.url = url
-              bkms.remove(bookmark)
+            if bu: bookmark.title = title
+            if bt: bookmark.url = url
         if not update or not bookmark:
           bookmark = Bookmark(url, title)
           self.add(bookmark)
