@@ -94,28 +94,30 @@ class BookmarkCollection:
 
   def parse_md(self, lines):
     cats = []
-    bkms = self.bookmarks.copy()
+    update = (len(self.bookmarks) > 0)
+    if update: bkms = self.bookmarks.copy()
     for line in lines:
       # match bookmark line
       link_match = re.search(self.link_pattern, line)
       if link_match:
         url = link_match[2]
         title = link_match[1]
-        bookmark = self.find_by_url(url)
-        if bookmark:
-          bookmark.title = title
-          bkms.remove(bookmark)
-        else:
-          bookmark = self.find_by_title(title)
+        if update:
+          bookmark = self.find_by_url(url)
           if bookmark:
-            bookmark.url = url
+            bookmark.title = title
             bkms.remove(bookmark)
           else:
-            bookmark = Bookmark(url, title)
-            self.add(bookmark)
-            tags = [ t.replace(' ', '-').lower() for t in cats ]
-            bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
-            bookmark.categories = ' > '.join(cats)
+            bookmark = self.find_by_title(title)
+            if bookmark:
+              bookmark.url = url
+              bkms.remove(bookmark)
+        if not update or not bookmark:
+          bookmark = Bookmark(url, title)
+          self.add(bookmark)
+          tags = [ t.replace(' ', '-').lower() for t in cats ]
+          bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+          bookmark.categories = ' > '.join(cats)
         continue
       # match title line
       title_match = re.search(self.title_pattern, line)
@@ -129,8 +131,9 @@ class BookmarkCollection:
           cats.append(category)
 
     # remove missing bookmarks
-    for b in bkms:
-      self.delete(b)
+    if update:
+      for b in bkms:
+        self.delete(b)
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
