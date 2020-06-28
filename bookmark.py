@@ -72,10 +72,6 @@ class Bookmark:
 
 class BookmarkCollection:
 
-  title_pattern = r'^(#+)\s+(.+)$'
-  # link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/[\w\d./?=#]+)\)\s*$'
-  link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/.+)\)\s*$'
-
   def __init__(self):
     self.bookmarks = []
 
@@ -90,58 +86,14 @@ class BookmarkCollection:
   def load_json(self, fpath):
     with open(fpath, encoding='utf-8') as file:
       data = json.load(file)
-      self.parse_json(data)
+      bcp = BookmarkCollectionParser('json', self)
+      self.bookmarks = bcp.parse(data)
 
   def load_md(self, fpath):
     with open(fpath, encoding='utf-8') as file:
       lines = file.readlines()
-      self.parse_md(lines)
-
-  def parse_json(self, data):
-    for url in data:
-      bookmark = Bookmark()
-      bookmark.parse_json(data[url])
-      self.add(bookmark)
-
-  def parse_md(self, lines):
-    cats = []
-    update = (len(self.bookmarks) > 0)
-    if update: bkms = self.bookmarks.copy()
-    for line in lines:
-      # match bookmark line
-      link_match = re.search(self.link_pattern, line)
-      if link_match:
-        url = link_match[2]
-        title = link_match[1]
-        if update:
-          bu = self.find_by_url(url)
-          bt = self.find_by_title(title)
-          bookmark = bu if bu else bt
-          if bookmark:
-            bkms.remove(bookmark)
-            if bu: bookmark.title = title
-            if bt: bookmark.url = url
-        if not update or not bookmark:
-          bookmark = Bookmark(url, title)
-          self.add(bookmark)
-        bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
-        bookmark.categories = ' > '.join(cats)
-        continue
-      # match title line
-      title_match = re.search(self.title_pattern, line)
-      if title_match:
-        category = title_match[2]
-        level = title_match[1].count('#') - 1
-        cats = cats[:level]
-        if len(cats) > level:
-          cats[level] = category
-        else:
-          cats.append(category)
-
-    # remove missing bookmarks
-    if update:
-      for b in bkms:
-        self.delete(b)
+      bcp = BookmarkCollectionParser('md', self)
+      self.bookmarks = bcp.parse(lines)
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
@@ -268,6 +220,7 @@ class BookmarkCollection:
 
 
 class LastHttpRequest:
+
   def __init__(self, connected, status=None, redirect=None, title=None):
     self.connected = connected
     self.status = status
@@ -290,3 +243,69 @@ class LastHttpRequest:
     if self.title:
       data["pageTitle"] = self.title
     return data
+
+
+class BookmarkCollectionParser:
+
+  title_pattern = r'^(#+)\s+(.+)$'
+  # link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/[\w\d./?=#]+)\)\s*$'
+  link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/.+)\)\s*$'
+
+  def __init__(self, ftype, bc=None):
+    self.ftype = ftype
+    self.bc = bc if bc else BookmarkCollection()
+
+  def parse(self, data):
+    if self.ftype == 'json':
+      return self._parse_json(data)
+    if self.ftype == 'md':
+      return self._parse_md(data)
+    if self.ftype == 'nbff':
+      return self._parse_netscape_bookmark_file(data)
+
+  def _parse_json(self, data):
+    for url in data:
+      bookmark = Bookmark()
+      bookmark.parse_json(data[url])
+      self.bc.add(bookmark)
+    return self.bc.bookmarks
+
+  def _parse_md(self, data):
+    cats = []
+    update = (len(self.bc.bookmarks) > 0)
+    if update: bkms = self.bc.bookmarks.copy()
+    for line in data:
+      # match bookmark line
+      link_match = re.search(self.link_pattern, line)
+      if link_match:
+        url = link_match[2]
+        title = link_match[1]
+        if update:
+          bu = self.bc.find_by_url(url)
+          bt = self.bc.find_by_title(title)
+          bookmark = bu if bu else bt
+          if bookmark:
+            bkms.remove(bookmark)
+            if bu: bookmark.title = title
+            if bt: bookmark.url = url
+        if not update or not bookmark:
+          bookmark = Bookmark(url, title)
+          self.bc.add(bookmark)
+        bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+        bookmark.categories = ' > '.join(cats)
+        continue
+      # match title line
+      title_match = re.search(self.title_pattern, line)
+      if title_match:
+        category = title_match[2]
+        level = title_match[1].count('#') - 1
+        cats = cats[:level]
+        if len(cats) > level:
+          cats[level] = category
+        else:
+          cats.append(category)
+    # remove missing bookmarks
+    if update:
+      for b in bkms:
+        self.bc.delete(b)
+    return self.bc.bookmarks
