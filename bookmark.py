@@ -214,12 +214,12 @@ class BookmarkCollection:
 
   def update_urls(self):
     for b in self.bookmarks:
-      if b.last_request.redirect:
+      if b.last_request and b.last_request.redirect:
         b.update_url(b.last_request.redirect)
 
   def update_titles(self):
     for b in self.bookmarks:
-      if b.last_request.title:
+      if b.last_request and b.last_request.title:
         b.update_title(b.last_request.title)
 
   def get_bookmarks(self, by, value):
