@@ -83,17 +83,24 @@ class BookmarkCollection:
     if found:
       self.bookmarks.remove(found)
 
-  def load_json(self, fpath):
-    with open(fpath, encoding='utf-8') as file:
-      data = json.load(file)
-      bcp = BookmarkCollectionParser('json', self)
-      self.bookmarks = bcp.parse(data)
+  def load(self, fpath):
+    suffix = Path(fpath).suffix
+    if suffix == '.json':
+      get_data = lambda f: json.load(f)
+      ptype = 'json'
+    elif suffix == '.md':
+      get_data = lambda f: f.readlines()
+      ptype = 'md'
+    elif suffix in ['.html','.htm']:
+      get_data = lambda f: f.readlines()
+      ptype = 'nbff'
+    else:
+      raise ValueError(f"cannot handle file with extension '{suffix}'")
 
-  def load_md(self, fpath):
     with open(fpath, encoding='utf-8') as file:
-      lines = file.readlines()
-      bcp = BookmarkCollectionParser('md', self)
-      self.bookmarks = bcp.parse(lines)
+      data = get_data(file)
+      bcp = BookmarkCollectionParser(ptype, self)
+      self.bookmarks = bcp.parse(data)
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:

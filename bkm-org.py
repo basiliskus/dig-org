@@ -21,12 +21,12 @@ def main(args):
 
   if args['findduplicates']:
     bc = BookmarkCollection()
-    bc.load_md(md_fpath)
+    bc.load(md_fpath)
     print(bc.duplicate_urls())
     return
 
   bc = BookmarkCollection()
-  bc.load_json(json_fpath)
+  bc.load(json_fpath)
 
   if args['validatelinks']:
     bc.validate()
@@ -57,7 +57,7 @@ def main(args):
     elif args['update'] == 'md':
       bc.write_md(md_fpath)
     elif args['update'] == 'json':
-      bc.load_md(md_fpath)
+      bc.load(md_fpath)
       bc.write_json(json_fpath)
     return
 
