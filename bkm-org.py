@@ -65,7 +65,7 @@ def main(args):
 def get_parser():
   parser = argparse.ArgumentParser(
     description='Bookmark file manager',
-    formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    formatter_class = argparse.RawTextHelpFormatter
   )
   parser.add_argument(
     '-vl',
@@ -89,7 +89,7 @@ def get_parser():
     type=int,
     nargs='?',
     const=1,
-    help = 'Get URLs by status code. Use 0 to get URLs which failed to connect'
+    help = 'Get URLs by status code:\n  0: returns URLs which failed to connect\n  10: returns URLs with unknown status\n  none: returns all URLs grouped by status'
   ),
   parser.add_argument(
     '-t',
