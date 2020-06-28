@@ -24,8 +24,8 @@ class Bookmark:
     self.created = self.today
     self.tags = tags
     self.categories = categories
-    self.validate = [ 'url', 'title' ]
-    self.last_request = LastHttpRequest(False)
+    self.validate = [ 'connection', 'url', 'title' ]
+    self.last_request = None
     self.history = []
 
   def parse_json(self, data):
@@ -36,10 +36,10 @@ class Bookmark:
     self.categories = data['categories']
     self.validate = data['validate']
     if 'lastHttpRequest' in data:
-      self.last_request.parse(data['lastHttpRequest'])
-    else:
       self.last_request = LastHttpRequest(False)
-    self.history = data['history']
+      self.last_request.parse(data['lastHttpRequest'])
+    if 'history' in data:
+      self.history = data['history']
 
   @property
   def md(self):
@@ -47,16 +47,19 @@ class Bookmark:
 
   @property
   def json(self):
-    return {
+    data = {
       "url": self.url,
       "title": self.title,
       "created": self.created,
       "tags": self.tags,
       "categories": self.categories,
-      "validate": self.validate,
-      "lastHttpRequest": self.last_request.json,
-      "history": self.history
+      "validate": self.validate
     }
+    if self.last_request:
+      data["lastHttpRequest"] = self.last_request.json
+    if self.history:
+      data["history"] = self.history
+    return data
 
   def update_url(self, url):
     self.history.append({ "date": self.today, "url": self.url })
@@ -177,8 +180,15 @@ class BookmarkCollection:
 
   def validate(self):
     for b in self.bookmarks:
+
+      if not 'connection' in b.validate:
+        b.last_request = None
+        logger.debug(f'{b.url} (skip)')
+        continue
+      else:
+        logger.debug(b.url)
+
       try:
-        logger.debug(f"validating: {b.url}")
         r = requests.get(b.url)
         b.last_request = LastHttpRequest(True, r.status_code)
 
@@ -215,9 +225,11 @@ class BookmarkCollection:
   def get_bookmarks(self, by, value):
     if by == 'status':
       if value == 0:
-        return [ b for b in self.bookmarks if not b.last_request.connected ]
+        return [ b for b in self.bookmarks if b.last_request and not b.last_request.connected ]
+      elif value == 10:
+        return [ b for b in self.bookmarks if not b.last_request ]
       else:
-        return [ b for b in self.bookmarks if b.last_request.status == value ]
+        return [ b for b in self.bookmarks if b.last_request and b.last_request.status == value ]
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
 
@@ -226,8 +238,9 @@ class BookmarkCollection:
 
   def get_grouped_bookmarks_str(self, by):
     if by == 'status':
-      values = list(set([ b.last_request.status for b in self.bookmarks if b.last_request.status ]))
-      values.append(0)    # value 0 represnts urls that failed to connect
+      values = list(set([ b.last_request.status for b in self.bookmarks if b.last_request and b.last_request.status ]))
+      values.append(0)    # value 0 represents urls that failed to connect
+      values.append(10)   # value 10 represents urls with unknown connection status
       get_title = lambda status: self._get_grouped_status_title_str(status)
     elif by == 'tag':
       tags = [ b.tags for b in self.bookmarks ]
@@ -248,6 +261,8 @@ class BookmarkCollection:
       return f'{status} ({code_name}):'
     elif status == 0:
       return 'Connection Failed:'
+    elif status == 10:
+      return 'Unknown:'
     else:
       return f'{status}:'
 
