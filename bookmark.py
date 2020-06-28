@@ -113,9 +113,8 @@ class BookmarkCollection:
         if not update or not bookmark:
           bookmark = Bookmark(url, title)
           self.add(bookmark)
-          tags = [ t.replace(' ', '-').lower() for t in cats ]
-          bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
-          bookmark.categories = ' > '.join(cats)
+        bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+        bookmark.categories = ' > '.join(cats)
         continue
       # match title line
       title_match = re.search(self.title_pattern, line)
