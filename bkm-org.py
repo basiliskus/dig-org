@@ -51,6 +51,9 @@ def main(args):
     if args['update'] == 'url':
       bc.update_urls()
       bc.write_json(json_fpath)
+    if args['update'] == 'title':
+      bc.update_titles()
+      bc.write_json(json_fpath)
     elif args['update'] == 'md':
       bc.write_md(md_fpath)
     elif args['update'] == 'json':
@@ -101,7 +104,7 @@ def get_parser():
     '-u',
     '--update',
     action='store',
-    choices = [ 'url', 'md', 'json' ],
+    choices = [ 'url', 'title', 'md', 'json' ],
     help = 'Update json file'
   )
   return parser

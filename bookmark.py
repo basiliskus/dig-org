@@ -58,6 +58,11 @@ class Bookmark:
     self.history.append({ "date": today, "url": self.url })
     self.url = url
 
+  def update_title(self, title):
+    today = date.today().strftime('%Y-%m-%d')
+    self.history.append({ "date": today, "title": self.title })
+    self.title = title
+
 
 class BookmarkCollection:
 
@@ -170,6 +175,7 @@ class BookmarkCollection:
   def validate(self):
     for b in self.bookmarks:
       try:
+        logger.debug(f"validating: {b.url}")
         r = requests.get(b.url)
         b.last_request = LastHttpRequest(True, r.status_code)
 
@@ -197,6 +203,11 @@ class BookmarkCollection:
     for b in self.bookmarks:
       if b.last_request.redirect:
         b.update_url(b.last_request.redirect)
+
+  def update_titles(self):
+    for b in self.bookmarks:
+      if b.last_request.title:
+        b.update_title(b.last_request.title)
 
   def get_bookmarks(self, by, value):
     if by == 'status':
