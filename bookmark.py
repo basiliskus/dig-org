@@ -16,9 +16,12 @@ logger = log.get_logger(utils.get_script_name(__file__), log_path=log_path)
 
 class Bookmark:
 
+  today = date.today().strftime('%Y-%m-%d')
+
   def __init__(self, url='', title='', tags=None, categories=''):
     self.url = url
     self.title = title
+    self.created = self.today
     self.tags = tags
     self.categories = categories
     self.validate = [ 'url', 'title' ]
@@ -28,6 +31,7 @@ class Bookmark:
   def parse_json(self, data):
     self.url = data['url']
     self.title = data['title']
+    self.created = data['created']
     self.tags = data['tags']
     self.categories = data['categories']
     self.validate = data['validate']
@@ -46,6 +50,7 @@ class Bookmark:
     return {
       "url": self.url,
       "title": self.title,
+      "created": self.created,
       "tags": self.tags,
       "categories": self.categories,
       "validate": self.validate,
@@ -54,13 +59,11 @@ class Bookmark:
     }
 
   def update_url(self, url):
-    today = date.today().strftime('%Y-%m-%d')
-    self.history.append({ "date": today, "url": self.url })
+    self.history.append({ "date": self.today, "url": self.url })
     self.url = url
 
   def update_title(self, title):
-    today = date.today().strftime('%Y-%m-%d')
-    self.history.append({ "date": today, "title": self.title })
+    self.history.append({ "date": self.today, "title": self.title })
     self.title = title
 
 
