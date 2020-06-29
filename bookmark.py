@@ -3,7 +3,7 @@ import bs4
 import json
 import requests
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime
 
 from modules import log
 from modules import utils
@@ -91,9 +91,6 @@ class BookmarkCollection:
     elif suffix == '.md':
       get_data = lambda f: f.readlines()
       ptype = 'md'
-    elif suffix in ['.html','.htm']:
-      get_data = lambda f: f.readlines()
-      ptype = 'nbff'
     else:
       raise ValueError(f"cannot handle file with extension '{suffix}'")
 
@@ -101,6 +98,12 @@ class BookmarkCollection:
       data = get_data(file)
       bcp = BookmarkCollectionParser(ptype, self)
       self.bookmarks = bcp.parse(data)
+
+  def import_nbff(self, fpath):
+    with open(fpath, encoding='utf-8') as file:
+      data = bs4.BeautifulSoup(file, 'html.parser')
+    bcp = BookmarkCollectionParser('nbff', self)
+    self.bookmarks = bcp.import_nbff(data)
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
@@ -116,6 +119,22 @@ class BookmarkCollection:
 
   def find_by_title(self, title):
     return next((b for b in self.bookmarks if b.title == title), None)
+
+  def find_by_url_in_history(self, url):
+    for b in self.bookmarks:
+      if not b.history: continue
+      for h in b.history:
+        if 'url' in h and h['url'] == url:
+          return b
+    return None
+
+  def find_by_title_in_history(self, title):
+    for b in self.bookmarks:
+      if not b.history: continue
+      for h in b.history:
+        if 'title' in h and h['title'] == title:
+          return b
+    return None
 
   @property
   def json(self):
@@ -272,8 +291,6 @@ class BookmarkCollectionParser:
       return self._parse_json(data)
     if self.ftype == 'md':
       return self._parse_md(data)
-    if self.ftype == 'nbff':
-      return self._parse_netscape_bookmark_file(data)
 
   def _parse_json(self, data):
     for url in data:
@@ -321,3 +338,42 @@ class BookmarkCollectionParser:
       for b in bkms:
         self.bc.delete(b)
     return self.bc.bookmarks
+
+  def import_nbff(self, data):
+    bkms = self.bc.bookmarks.copy()
+    self._nbff_traverse_nodes(data.dl, 0, [], bkms)
+    return self.bc.bookmarks
+
+  def _nbff_traverse_nodes(self, node, level, cats, bkms):
+    for child in node.children:
+      if type(child) == bs4.element.NavigableString: continue
+      if child.name == 'a':
+        url = child.get('href')
+        title = child.text
+        unix_timestamp = child.get('add_date')
+        unix_timestamp = int(unix_timestamp[:10]) if len(unix_timestamp) > 10 else int(unix_timestamp)
+        created = datetime.fromtimestamp(unix_timestamp).strftime('%Y-%m-%d')
+        bookmark = self.bc.find_by_url(url)
+        if not bookmark: bookmark = self.bc.find_by_url_in_history(url)
+        if not bookmark: bookmark = self.bc.find_by_title(title)
+        if not bookmark: bookmark = self.bc.find_by_title_in_history(title)
+        if bookmark:
+          if not bookmark in bkms: continue
+          bookmark.created = created
+          bkms.remove(bookmark)
+        else:
+          bookmark = Bookmark(url, title)
+          bookmark.created = created
+          bookmark.categories = ' > '.join(cats)
+          bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ t.replace(' ', '-').lower() for t in cats ]
+          self.bc.add(bookmark)
+      elif child.name == 'h3':
+        cats = cats[:level]
+        if len(cats) > level:
+          cats[level] = child.text
+        else:
+          cats.append(child.text)
+      elif child.name == 'dl':
+        self._nbff_traverse_nodes(child, level+1, cats, bkms)
+      elif child.name in ['p','dt','dd']:
+        self._nbff_traverse_nodes(child, level, cats, bkms)

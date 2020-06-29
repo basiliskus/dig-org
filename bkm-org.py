@@ -73,6 +73,12 @@ def main(args):
       bc.write_json(json_fpath)
     return
 
+  if args['import']:
+    bcd = BookmarkCollection()
+    bcd.import_nbff(args['import'])
+    bcd.write_json(json_fpath)
+    return
+
 
 def get_parser():
   parser = argparse.ArgumentParser(
@@ -122,6 +128,13 @@ def get_parser():
     action='store',
     choices = [ 'url', 'title', 'md', 'json' ],
     help = 'Update json file'
+  ),
+  parser.add_argument(
+    '-i',
+    '--import',
+    action='store',
+    type=str,
+    help = 'Import Netscape Bookmark File'
   )
   return parser
 
