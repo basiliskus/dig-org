@@ -33,19 +33,28 @@ def main(args):
     bc.write_json(json_fpath)
     return
 
-  if not args['statuscode'] is None:
-    if args['statuscode'] != 1:
-      print('\n'.join(bc.get_urls('status', args['statuscode'])))
-    else:
-      print(bc.get_grouped_bookmarks_str('status'))
-    return
+  if args['list']:
 
-  if args['tag']:
-    if args['tag'] != 'all':
-      print('\n'.join(bc.get_urls('tag', args['tag'])))
-    else:
-      print(bc.get_grouped_bookmarks_str('tag'))
-    return
+    if args['list'][0] == 'status':
+      if len(args['list']) > 1:
+        print('\n'.join(bc.get_urls('status', int(args['list'][1]))))
+      else:
+        print(bc.get_grouped_bookmarks_str('status'))
+      return
+
+    if args['list'][0] == 'tag':
+      if len(args['list']) > 1:
+        print('\n'.join(bc.get_urls('tag', args['list'][1])))
+      else:
+        print(bc.get_grouped_bookmarks_str('tag'))
+      return
+
+    if args['list'][0] == 'created':
+      if len(args['list']) > 1:
+        print('\n'.join(bc.get_urls('created', args['list'][1])))
+      else:
+        print(bc.get_grouped_bookmarks_str('created'))
+      return
 
   if args['update']:
     if args['update'] == 'url':
@@ -82,23 +91,19 @@ def get_parser():
     help = 'Find duplicates in md file'
   ),
   parser.add_argument(
-    '-sc',
-    '--status-code',
-    dest = 'statuscode',
+    '-l',
+    '--list',
     action='store',
-    type=int,
-    nargs='?',
-    const=1,
-    help = 'Get URLs by status code:\n  0: returns URLs which failed to connect\n  10: returns URLs with unknown status\n  none: returns all URLs grouped by status'
-  ),
-  parser.add_argument(
-    '-t',
-    '--tag',
-    action='store',
-    type=str,
-    nargs='?',
-    const='all',
-    help = 'Get URLs by tag'
+    nargs='+',
+    help = """List urls by property:
+  'status':
+    0: returns urls which failed to connect
+    10: returns urls with unknown status
+    none: returns all urls grouped by status
+  'tag': return urls by tag
+    none: return all urls grouped by tag
+  'created': return urls by creation date with format 'yyyy-mm-dd'
+    """
   ),
   parser.add_argument(
     '-u',

@@ -191,6 +191,8 @@ class BookmarkCollection:
         return [ b for b in self.bookmarks if b.last_request and b.last_request.status == value ]
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
+    if by == 'created':
+      return [ b for b in self.bookmarks if value in b.created ]
 
   def get_urls(self, value, by):
     return [ b.url for b in self.get_bookmarks(value, by) ]
@@ -205,6 +207,9 @@ class BookmarkCollection:
       tags = [ b.tags for b in self.bookmarks ]
       values = list(set([ tag for st in tags for tag in st ]))
       get_title = lambda tag: f'{tag}:'
+    elif by == 'created':
+      values = list(set([ b.created for b in self.bookmarks ]))
+      get_title = lambda created: f'{created}:'
 
     response = []
     for value in sorted(values):
