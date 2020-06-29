@@ -25,6 +25,9 @@ def main(args):
     print(bc.duplicate_urls())
     return
 
+  if args['bookmarkfile']:
+    json_fpath = Path(args['bookmarkfile'])
+
   bc = BookmarkCollection()
   bc.load(json_fpath)
 
@@ -76,6 +79,14 @@ def get_parser():
     description='Bookmark file manager',
     formatter_class = argparse.RawTextHelpFormatter
   )
+  parser.add_argument(
+    '-f',
+    '--bookmark-file',
+    dest = 'bookmarkfile',
+    action='store',
+    type=str,
+    help = 'Specify bookmark file'
+  ),
   parser.add_argument(
     '-vl',
     '--validate-links',
