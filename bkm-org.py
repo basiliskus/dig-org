@@ -85,6 +85,7 @@ def main(args):
 
   if args['import']:
     bcd = BookmarkCollection()
+    bcd.load(json_fpath)
     bcd.import_nbff(args['import'])
     bcd.write_json(json_fpath)
     return
