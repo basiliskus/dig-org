@@ -19,9 +19,12 @@ statusd = responses.copy()
 statusd[0] = 'Connection Failed'
 statusd[10] = 'Unknown'
 
+date_format = '%Y-%m-%d'
+
+
 class Bookmark:
 
-  today = date.today().strftime('%Y-%m-%d')
+  today = date.today().strftime(date_format)
 
   def __init__(self, url='', title='', tags=None, categories=''):
     self.url = url
@@ -162,14 +165,14 @@ class BookmarkCollection:
 
     with open(fpath, encoding='utf-8') as file:
       data = get_data(file)
-      bcp = BookmarkCollectionParser(ptype, self)
-      self.bookmarks = bcp.parse(data)
+      bcp = BookmarkCollectionParser(ptype, self.bookmarks)
+      self.bookmarks = bcp.parse(data).bookmarks
 
   def import_nbff(self, fpath):
     with open(fpath, encoding='utf-8') as file:
       data = bs4.BeautifulSoup(file, 'html.parser')
-    bcp = BookmarkCollectionParser('nbff', self)
-    self.bookmarks = bcp.import_nbff(data)
+    bcp = BookmarkCollectionParser('nbff', self.bookmarks)
+    self.bookmarks = bcp.import_nbff(data).bookmarks
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
@@ -303,15 +306,15 @@ class LastHttpRequest:
     return data
 
 
-class BookmarkCollectionParser:
+class BookmarkCollectionParser(BookmarkCollection):
 
   title_pattern = r'^(#+)\s+(.+)$'
   # link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/[\w\d./?=#]+)\)\s*$'
   link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/.+)\)\s*$'
 
-  def __init__(self, ftype, bc=None):
+  def __init__(self, ftype, bookmarks=None):
     self.ftype = ftype
-    self.bc = bc if bc else BookmarkCollection()
+    self.bookmarks = bookmarks if bookmarks else []
 
   def parse(self, data):
     if self.ftype == 'json':
@@ -323,13 +326,14 @@ class BookmarkCollectionParser:
     for url in data:
       bookmark = Bookmark()
       bookmark.parse_json(data[url])
-      self.bc.add(bookmark)
-    return self.bc.bookmarks
+      if not self.add(bookmark):
+        logger.debug(f'not able to add: {bookmark.url}')
+    return self
 
   def _parse_md(self, data):
     cats = []
-    update = (len(self.bc.bookmarks) > 0)
-    if update: bkms = self.bc.bookmarks.copy()
+    update = (len(self.bookmarks) > 0)
+    if update: bkms = self.bookmarks.copy()
     for line in data:
       # match bookmark line
       link_match = re.search(self.link_pattern, line)
@@ -337,8 +341,8 @@ class BookmarkCollectionParser:
         url = link_match[2]
         title = link_match[1]
         if update:
-          bu = self.bc.find_by_url(url)
-          bt = self.bc.find_by_title(title)
+          bu = self.find_by_url(url)
+          bt = self.find_by_title(title)
           bookmark = bu if bu else bt
           if bookmark:
             bkms.remove(bookmark)
@@ -346,9 +350,11 @@ class BookmarkCollectionParser:
             if bt: bookmark.url = url
         if not update or not bookmark:
           bookmark = Bookmark(url, title)
-          self.bc.add(bookmark)
-        bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
-        bookmark.categories = ' > '.join(cats)
+          if not self.add(bookmark):
+            logger.debug(f'not able to add: {bookmark.url}')
+        if cats:
+          bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+          bookmark.categories = ' > '.join(cats)
         continue
       # match title line
       title_match = re.search(self.title_pattern, line)
@@ -363,15 +369,15 @@ class BookmarkCollectionParser:
     # remove missing bookmarks
     if update:
       for b in bkms:
-        self.bc.delete(b)
-    return self.bc.bookmarks
+        if not self.delete(b):
+          logger.debug(f'not able to delete: {b.url}')
+    return self
 
   def import_nbff(self, data):
-    bkms = self.bc.bookmarks.copy()
-    self._nbff_traverse_nodes(data.dl, 0, [], bkms)
-    return self.bc.bookmarks
+    self._nbff_traverse_nodes(data.dl, 0, [])
+    return self
 
-  def _nbff_traverse_nodes(self, node, level, cats, bkms):
+  def _nbff_traverse_nodes(self, node, level, cats):
     for child in node.children:
       if type(child) == bs4.element.NavigableString: continue
       if child.name == 'a':
@@ -379,21 +385,21 @@ class BookmarkCollectionParser:
         title = child.text
         unix_timestamp = child.get('add_date')
         unix_timestamp = int(unix_timestamp[:10]) if len(unix_timestamp) > 10 else int(unix_timestamp)
-        created = datetime.fromtimestamp(unix_timestamp).strftime('%Y-%m-%d')
-        bookmark = self.bc.find_by_url(url)
-        if not bookmark: bookmark = self.bc.find_by_url_in_history(url)
-        if not bookmark: bookmark = self.bc.find_by_title(title)
-        if not bookmark: bookmark = self.bc.find_by_title_in_history(title)
+        created = datetime.fromtimestamp(unix_timestamp).strftime(date_format)
+        bookmark = self.find_by_url(url)
+        if not bookmark: bookmark = self.find_by_url_in_history(url)
+        if not bookmark: bookmark = self.find_by_title(title)
+        if not bookmark: bookmark = self.find_by_title_in_history(title)
         if bookmark:
-          if not bookmark in bkms: continue
-          bookmark.created = created
-          bkms.remove(bookmark)
+          if datetime.strptime(created, date_format) < datetime.strptime(bookmark.created, date_format):
+            bookmark.created = created
         else:
           bookmark = Bookmark(url, title)
           bookmark.created = created
           bookmark.categories = ' > '.join(cats)
           bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ t.replace(' ', '-').lower() for t in cats ]
-          self.bc.add(bookmark)
+          if not self.add(bookmark):
+            logger.debug(f'not able to add: {bookmark.url}')
       elif child.name == 'h3':
         cats = cats[:level]
         if len(cats) > level:
@@ -401,6 +407,6 @@ class BookmarkCollectionParser:
         else:
           cats.append(child.text)
       elif child.name == 'dl':
-        self._nbff_traverse_nodes(child, level+1, cats, bkms)
+        self._nbff_traverse_nodes(child, level+1, cats)
       elif child.name in ['p','dt','dd']:
-        self._nbff_traverse_nodes(child, level, cats, bkms)
+        self._nbff_traverse_nodes(child, level, cats)
