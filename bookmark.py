@@ -22,7 +22,7 @@ class Bookmark:
     self.url = url
     self.title = title
     self.created = self.today
-    self.tags = tags
+    self.tags = tags if tags else []
     self.categories = categories
     self.validate = [ 'connection', 'url', 'title' ]
     self.last_request = None
