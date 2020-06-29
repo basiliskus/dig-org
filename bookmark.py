@@ -70,6 +70,16 @@ class Bookmark:
     self.history.append({ "date": self.today, "title": self.title })
     self.title = title
 
+  def fetch_title(self):
+    try:
+      r = requests.get(self.url)
+      html = bs4.BeautifulSoup(r.text, 'html.parser')
+      title = html.title.text.strip() if html.title else ''
+      if r.status_code == 200:
+        self.title = title
+    except:
+      pass
+
 
 class BookmarkCollection:
 
@@ -77,12 +87,26 @@ class BookmarkCollection:
     self.bookmarks = []
 
   def add(self, bookmark):
-    self.bookmarks.append(bookmark)
+    found = self.find_by_url(bookmark.url)
+    if not found:
+      self.bookmarks.append(bookmark)
+      return True
+    return False
 
   def delete(self, bookmark):
-    found = self.find_by_url(bookmark.url)
+    return self.delete_url(bookmark.url)
+
+  def add_url(self, url):
+    bookmark = Bookmark(url)
+    bookmark.fetch_title()
+    return self.add(bookmark)
+
+  def delete_url(self, url):
+    found = self.find_by_url(url)
     if found:
       self.bookmarks.remove(found)
+      return True
+    return False
 
   def load(self, fpath):
     suffix = Path(fpath).suffix

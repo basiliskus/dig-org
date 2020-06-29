@@ -81,6 +81,24 @@ def main(args):
     bcd.write_json(json_fpath)
     return
 
+  if args['addurl']:
+    url = args['addurl']
+    if bc.add_url(url):
+      bc.write_json(json_fpath)
+      print(f'{url}: successfully added to collection and saved at {json_fpath}')
+    else:
+      print(f'{url}: not able to add url to collection')
+    return
+
+  if args['delurl']:
+    url = args['delurl']
+    if bc.delete_url(url):
+      bc.write_json(json_fpath)
+      print(f'{url}: successfully deleted from collection and saved at {json_fpath}')
+    else:
+      print(f'{url}: not able to delete url from collection')
+    return
+
 
 def get_parser():
   parser = argparse.ArgumentParser(
@@ -92,7 +110,6 @@ def get_parser():
     '--bookmark-file',
     dest = 'bookmarkfile',
     action='store',
-    type=str,
     help = 'Specify bookmark file'
   ),
   parser.add_argument(
@@ -135,8 +152,21 @@ def get_parser():
     '-i',
     '--import',
     action='store',
-    type=str,
     help = 'Import Netscape Bookmark File'
+  ),
+  parser.add_argument(
+    '-a',
+    '--add-url',
+    dest = 'addurl',
+    action='store',
+    help = 'Add url'
+  ),
+  parser.add_argument(
+    '-d',
+    '--delete-url',
+    dest = 'delurl',
+    action='store',
+    help = 'Delete url'
   )
   return parser
 
