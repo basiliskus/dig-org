@@ -62,6 +62,29 @@ class Bookmark:
       data["history"] = self.history
     return data
 
+  def verify(self):
+    try:
+      response = requests.get(self.url)
+    except Exception as e:
+      self.last_request = LastHttpRequest(False)
+      logger.debug(f"couldn't connect to: {self.url}")
+      logger.exception(e)
+      return False
+
+    self.last_request = LastHttpRequest(True, response.status_code)
+
+    # get redirect url
+    if 'url' in self.validate and response.url != self.url:
+      self.last_request.redirect = response.url
+
+    # get title
+    if 'title' in self.validate:
+      t = self.fetch_title(response)
+      if self.title != t:
+        self.last_request.title = t
+
+    return True
+
   def update_url(self, url):
     self.history.append({ "date": self.today, "url": self.url })
     self.url = url
@@ -183,33 +206,12 @@ class BookmarkCollection:
 
   def validate(self):
     for b in self.bookmarks:
-
       if not 'connection' in b.validate:
         b.last_request = None
         logger.debug(f'{b.url} (skip)')
         continue
-      else:
-        logger.debug(b.url)
-
-      try:
-        r = requests.get(b.url)
-        b.last_request = LastHttpRequest(True, r.status_code)
-
-        # get redirect url
-        if 'url' in b.validate and r.url != b.url:
-          b.last_request.redirect = r.url
-
-        # get title
-        if 'title' in b.validate:
-          html = bs4.BeautifulSoup(r.text, 'html.parser')
-          t = html.title.text.strip() if html.title else ''
-          if r.status_code == 200 and b.title != t:
-            b.last_request.title = t
-
-      except Exception as e:
-        b.last_request = LastHttpRequest(False)
-        logger.debug(f"couldn't connect to: {b.url}")
-        logger.exception(e)
+      logger.debug(b.url)
+      b.verify()
 
   def duplicate_urls(self):
     urls = [ b.url for b in self.bookmarks ]
