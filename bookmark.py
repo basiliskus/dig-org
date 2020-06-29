@@ -98,15 +98,19 @@ class Bookmark:
     self.history.append({ "date": self.today, "title": self.title })
     self.title = title
 
-  def fetch_title(self):
-    try:
-      r = requests.get(self.url)
-      html = bs4.BeautifulSoup(r.text, 'html.parser')
-      title = html.title.text.strip() if html.title else ''
-      if r.status_code == 200:
-        self.title = title
-    except:
-      pass
+  def fetch_title(self, response=None):
+    if not response:
+      try:
+        response = requests.get(self.url)
+      except:
+        return ''
+
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    if response.status_code == 200 and html.title:
+      return html.title.text.strip()
+    else:
+      return ''
+
   @property
   def status(self):
     if not self.last_request:
