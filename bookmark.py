@@ -3,6 +3,7 @@ import bs4
 import json
 import requests
 from pathlib import Path
+from http.client import responses
 from datetime import date, datetime
 
 from modules import log
@@ -13,6 +14,10 @@ from modules import config
 config = config.get_config('config')
 log_path = Path(config['global']['log_path'])
 logger = log.get_logger(utils.get_script_name(__file__), log_path=log_path)
+
+statusd = responses.copy()
+statusd[0] = 'Connection Failed'
+statusd[10] = 'Unknown'
 
 class Bookmark:
 
@@ -102,6 +107,15 @@ class Bookmark:
         self.title = title
     except:
       pass
+  @property
+  def status(self):
+    if not self.last_request:
+      code = 10
+    elif not self.last_request.connected:
+      code = 0
+    else:
+      code = self.last_request.status
+    return { "code": code, "name": statusd[code] }
 
 
 class BookmarkCollection:
@@ -229,12 +243,7 @@ class BookmarkCollection:
 
   def get_bookmarks(self, by, value):
     if by == 'status':
-      if value == 0:
-        return [ b for b in self.bookmarks if b.last_request and not b.last_request.connected ]
-      elif value == 10:
-        return [ b for b in self.bookmarks if not b.last_request ]
-      else:
-        return [ b for b in self.bookmarks if b.last_request and b.last_request.status == value ]
+      return [ b for b in self.bookmarks if b.status['code'] == value ]
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
     if by == 'created':
@@ -245,10 +254,8 @@ class BookmarkCollection:
 
   def get_grouped_bookmarks_str(self, by):
     if by == 'status':
-      values = list(set([ b.last_request.status for b in self.bookmarks if b.last_request and b.last_request.status ]))
-      values.append(0)    # value 0 represents urls that failed to connect
-      values.append(10)   # value 10 represents urls with unknown connection status
-      get_title = lambda status: self._get_grouped_status_title_str(status)
+      values = list(set([ b.status['code'] for b in self.bookmarks ]))
+      get_title = lambda code: f"{code} ({statusd[code]}):"
     elif by == 'tag':
       tags = [ b.tags for b in self.bookmarks ]
       values = list(set([ tag for st in tags for tag in st ]))
@@ -264,17 +271,6 @@ class BookmarkCollection:
       for b in self.get_bookmarks(by, value):
         response.append(f'  {b.url}')
     return '\n'.join(response)
-
-  def _get_grouped_status_title_str(self, status):
-    if status in requests.status_codes._codes:
-      code_name = requests.status_codes._codes[status][0]
-      return f'{status} ({code_name}):'
-    elif status == 0:
-      return 'Connection Failed:'
-    elif status == 10:
-      return 'Unknown:'
-    else:
-      return f'{status}:'
 
 
 class LastHttpRequest:
