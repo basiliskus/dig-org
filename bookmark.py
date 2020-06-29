@@ -43,7 +43,8 @@ class Bookmark:
 
   @property
   def md(self):
-    return f'* [{self.title}]({self.url})'
+    title = utils.strip(self.title, ['*', '\n', '\r'])
+    return f'* [{title}]({self.url})'
 
   @property
   def json(self):
