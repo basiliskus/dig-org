@@ -33,9 +33,17 @@ def main(args):
   bc = BookmarkCollection()
   bc.load(json_fpath)
 
-  if args['validatelinks']:
-    bc.validate()
-    bc.write_json(json_fpath)
+  if args['validate']:
+    if args['validate'] == 'bookmarks':
+      bc.validate()
+      bc.write_json(json_fpath)
+    else:
+      b = Bookmark(args['validate'])
+      if b.verify():
+        lr = b.last_request
+        print(f'validated:\n connected: {lr.connected}\n status: {lr.status}\n redirect: {lr.redirect}\n title: {lr.title}\n')
+      else:
+        print('not able to validate')
     return
 
   if args['list']:
@@ -113,11 +121,12 @@ def get_parser():
     help = 'Specify bookmark file'
   ),
   parser.add_argument(
-    '-vl',
-    '--validate-links',
-    dest = 'validatelinks',
-    action='store_true',
-    help = 'Validate links'
+    '-v',
+    '--validate',
+    action='store',
+    nargs='?',
+    const='bookmarks',
+    help = 'Validate urls. If not url is given, validate bookmark collection'
   ),
   parser.add_argument(
     '-fd',
