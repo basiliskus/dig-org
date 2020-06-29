@@ -10,7 +10,6 @@ from bookmark import Bookmark, BookmarkCollection
 
 config = config.get_config('config')
 log_path = Path(config['global']['log_path'])
-json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
 script_name = utils.get_script_name(__file__)
 logger = log.get_logger(script_name, log_path=log_path)
@@ -20,6 +19,8 @@ def main(args):
 
   if args['bookmarkfile']:
     json_fpath = Path(args['bookmarkfile'])
+  else:
+    json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
   md_fpath = json_fpath.with_suffix('.md')
 
