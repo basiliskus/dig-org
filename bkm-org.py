@@ -10,7 +10,6 @@ from bookmark import Bookmark, BookmarkCollection
 
 config = config.get_config('config')
 log_path = Path(config['global']['log_path'])
-md_fpath = Path(config['bkm-org']['bkm_md_fpath'])
 json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
 script_name = utils.get_script_name(__file__)
@@ -19,14 +18,16 @@ logger = log.get_logger(script_name, log_path=log_path)
 
 def main(args):
 
+  if args['bookmarkfile']:
+    json_fpath = Path(args['bookmarkfile'])
+
+  md_fpath = json_fpath.with_suffix('.md')
+
   if args['findduplicates']:
     bc = BookmarkCollection()
     bc.load(md_fpath)
     print(bc.duplicate_urls())
     return
-
-  if args['bookmarkfile']:
-    json_fpath = Path(args['bookmarkfile'])
 
   bc = BookmarkCollection()
   bc.load(json_fpath)
@@ -67,10 +68,10 @@ def main(args):
       bc.update_titles()
       bc.write_json(json_fpath)
     elif args['update'] == 'md':
-      bc.write_md(md_fpath)
+      bc.write_md(json_fpath.with_suffix('.md'))
     elif args['update'] == 'json':
       bc.load(md_fpath)
-      bc.write_json(json_fpath)
+      bc.write_json(md_fpath.with_suffix('.json'))
     return
 
   if args['import']:
