@@ -368,7 +368,7 @@ class BookmarkCollectionParser(BookmarkCollection):
           if not self.add(bookmark):
             logger.debug(f'not able to add: {bookmark.url}')
         if cats:
-          bookmark.tags = [ t.replace(' ', '-').lower() for t in cats ]
+          bookmark.tags = [ utils.get_tag_from_category(t) for t in cats ]
           bookmark.categories = ' > '.join(cats)
         continue
       # match title line
