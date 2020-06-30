@@ -114,6 +114,20 @@ class Bookmark:
     else:
       return ''
 
+  def add_tags(self, tags):
+    at_least_one_tag_added = False
+    for tag in tags:
+      if not tag in self.tags:
+        self.tags.append(tag)
+        at_least_one_tag_added = True
+    return at_least_one_tag_added
+
+  def delete_tag(self, tag):
+    if tag in self.tags:
+      self.tags.remove(tag)
+      return True
+    return False
+
   @property
   def status(self):
     if not self.last_request:
@@ -156,17 +170,13 @@ class BookmarkCollection:
   def add_tags(self, url, tags):
     bookmark = self.find_by_url(url)
     if bookmark:
-      for tag in tags:
-        if not tag in bookmark.tags:
-          bookmark.tags.append(tag)
-      return True
+      return bookmark.add_tags(tags)
     return False
 
   def delete_tag(self, url, tag):
     bookmark = self.find_by_url(url)
-    if bookmark and tag in bookmark.tags:
-      bookmark.tags.remove(tag)
-      return True
+    if bookmark:
+      return bookmark.delete_tag(tag)
     return False
 
   def load(self, fpath):
