@@ -90,17 +90,29 @@ def main(args):
     bcd.write_json(json_fpath)
     return
 
-  if args['addurl']:
-    url = args['addurl']
-    if bc.add_url(url):
+  if args['add']:
+    url = args['add'][0]
+    tags = args['add'][1] if len(args['add']) > 1 else None
+    if bc.add_url(url, tags):
       bc.write_json(json_fpath)
       print(f'{url}: successfully added to collection and saved at {json_fpath}')
+    elif bc.add_tags(url, tags.split(',')):
+      bc.write_json(json_fpath)
+      print(f"{url}: successfully added tags '{tags}' to url and saved at {json_fpath}")
     else:
       print(f'{url}: not able to add url to collection')
     return
 
-  if args['delurl']:
-    url = args['delurl']
+  if args['delete']:
+    url = args['delete'][0]
+    tag = args['delete'][1] if len(args['delete']) > 1 else None
+    if tag:
+      if bc.delete_tag(url, tag):
+        bc.write_json(json_fpath)
+        print(f"{url}: successfully deleted tag '{tag}' and saved at {json_fpath}")
+      else:
+        print(f"{url}: not able to delete tag '{tag}'")
+      return
     if bc.delete_url(url):
       bc.write_json(json_fpath)
       print(f'{url}: successfully deleted from collection and saved at {json_fpath}')
@@ -166,17 +178,17 @@ def get_parser():
   ),
   parser.add_argument(
     '-a',
-    '--add-url',
-    dest = 'addurl',
+    '--add',
+    nargs='+',
     action='store',
-    help = 'Add url'
+    help = 'Add url and tags if provided (tags are separated by comma and without space). If url exists, adds tags to url'
   ),
   parser.add_argument(
     '-d',
-    '--delete-url',
-    dest = 'delurl',
+    '--delete',
+    nargs='+',
     action='store',
-    help = 'Delete url'
+    help = 'Delete url or tag (if tag provided, url exists and has the tag)'
   )
   return parser
 

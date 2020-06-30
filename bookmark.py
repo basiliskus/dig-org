@@ -140,15 +140,32 @@ class BookmarkCollection:
   def delete(self, bookmark):
     return self.delete_url(bookmark.url)
 
-  def add_url(self, url):
+  def add_url(self, url, tags=None):
     bookmark = Bookmark(url)
     bookmark.fetch_title()
+    if tags: bookmark.tags = tags
     return self.add(bookmark)
 
   def delete_url(self, url):
     found = self.find_by_url(url)
     if found:
       self.bookmarks.remove(found)
+      return True
+    return False
+
+  def add_tags(self, url, tags):
+    bookmark = self.find_by_url(url)
+    if bookmark:
+      for tag in tags:
+        if not tag in bookmark.tags:
+          bookmark.tags.append(tag)
+      return True
+    return False
+
+  def delete_tag(self, url, tag):
+    bookmark = self.find_by_url(url)
+    if bookmark and tag in bookmark.tags:
+      bookmark.tags.remove(tag)
       return True
     return False
 
