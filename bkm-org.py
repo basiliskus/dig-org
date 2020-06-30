@@ -19,6 +19,8 @@ def main(args):
 
   if args['bookmarkfile']:
     json_fpath = Path(args['bookmarkfile'])
+    if not json_fpath.exists():
+      json_fpath.touch()
   else:
     json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
