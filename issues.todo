@@ -1,8 +1,15 @@
 General:
-  [ ] create tag ontology system
-  [ ] add article/reading bookmark system
-  [ ] add music playlist organizer
+ [ ] create tag ontology system
+ [ ] add article/reading bookmark system
+ [ ] add music playlist organizer
+ [ ] pick and add license
 Task Organizer (task-org):
+ [ ] write tests
+ [ ] add cli options to:
+ [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
+   [ ] add tasks
+   [x] display tasks for today, this week, next week and future days @done (20-06-17 21:32)
+   [x] update @done (20-06-17 21:32)
  [x] add file consolidation
    [x] archive past day's completed tasks in single 'archive-daily.todo' file
    [x] move daily pending past tasks to today's todo file
@@ -15,43 +22,38 @@ Task Organizer (task-org):
  [x] add recurring section in daily todo @done (20-06-11 18:25)
  [x] archive done tasks in weekly file in the archive-daily, under the relevant day. remove the archive-weekly file @done (20-06-06 17:28)
  [x] refactor and extract classes. load todo files in memory to manipulate tasks @done (20-06-06 17:30)
- [ ] write tests
  [x] rename project to 'task-org' @done (20-06-08 10:59)
  [x] sort taks by priority @done (20-06-11 16:18)
- [ ] add cli options to:
-   [ ] add tasks
-   [x] display tasks for today, this week, next week and future days @done (20-06-17 21:32)
-   [x] update @done (20-06-17 21:32)
- [ ] pick and add license
- [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
  [x] change today's file name to today.md and this week's file name to this-week.md @done (20-06-15 23:36)
  [x] handle future tasks @done (20-06-17 20:55)
 Bookmark Organizer (bkm-org):
- [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
- [x] store in json file @done (20-06-25 16:05)
- [x] create bookmark classes @done (20-06-25 23:48)
- [x] update markdown with json and viceversa @done (20-06-25 23:49)
  [ ] categorize links & manual cleanup
- [ ] update links
-   [x] url @done (20-06-26 19:31)
-   [x] title @done (20-06-27 19:36)
- [ ] maintenance
-   [x] link checker @done (20-06-24 21:14)
-   [x] title checker @done (20-06-25 16:06)
- [ ] add cli options to:
-   [x] validate links: url, title @done (20-06-26 16:55)
-   [x] add bookmark and tags @done (20-06-29 17:58)
-   [x] get links by tag @done (20-06-26 18:01)
- [x] choose what to validate for each bookmark: url, title @done (20-06-27 15:22)
  [ ] write tests
    [ ] validate json and markdown files
    [ ] assert md <=> json works
    [ ] assert uniqueness
- [ ] export to firefox and chrome
- [x] import from firefox and chrome @done (20-06-28 21:07)
+ [ ] handle multiple bookmark collections
+   [ ] handle temporary bookmarks
+ [ ] import bookmarks from instapaper
+   [ ] add selection/highlighting feature
  [ ] create chrome/firefox plugin:
    [ ] sync (import/export) and open webpage with bookmarks
    [ ] bookmark navigator: go to next/prev website
+ [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
+ [x] store in json file @done (20-06-25 16:05)
+ [x] create bookmark classes @done (20-06-25 23:48)
+ [x] update markdown with json and viceversa @done (20-06-25 23:49)
+ [x] update links @done (20-06-30 12:17)
+   [x] url @done (20-06-26 19:31)
+   [x] title @done (20-06-27 19:36)
+ [x] maintenance @done (20-06-30 12:17)
+   [x] link checker @done (20-06-24 21:14)
+   [x] title checker @done (20-06-25 16:06)
+ [x] add cli options to: @done (20-06-30 12:17)
+   [x] validate links: url, title @done (20-06-26 16:55)
+   [x] add bookmark and tags @done (20-06-29 17:58)
+   [x] get links by tag @done (20-06-26 18:01)
+ [x] choose what to validate for each bookmark: url, title @done (20-06-27 15:22)
+ [x] import from firefox and chrome @done (20-06-28 21:07)
  [x] use tags/labels @done (20-06-25 23:50)
- [ ] handle temporary bookmarks
  [x] import bookmarks from google.com/bookmarks and del.icio.us @done (20-06-28 21:07)
