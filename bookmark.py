@@ -1,5 +1,6 @@
 import re
 import bs4
+import csv
 import json
 import requests
 from pathlib import Path
@@ -200,6 +201,12 @@ class BookmarkCollection:
       data = bs4.BeautifulSoup(file, 'html.parser')
     bcp = BookmarkCollectionParser('nbff', self.bookmarks)
     self.bookmarks = bcp.import_nbff(data).bookmarks
+
+  def import_instapaper(self, fpath):
+    with open(fpath, encoding='utf-8') as csv_file:
+      reader = csv.DictReader(csv_file)
+      bcp = BookmarkCollectionParser('insta', self.bookmarks)
+      self.bookmarks = bcp.import_instapaper(reader).bookmarks
 
   def write_json(self, fpath):
     with open(fpath, 'w', encoding='utf8') as wf:
@@ -457,3 +464,13 @@ class BookmarkCollectionParser(BookmarkCollection):
         self._nbff_traverse_nodes(child, level+1, cats)
       elif child.name in ['p','dt','dd']:
         self._nbff_traverse_nodes(child, level, cats)
+
+  def import_instapaper(self, data):
+    for row in data:
+      bookmark = Bookmark(row['URL'], row['Title'])
+      bookmark.created = utils.get_date_from_unix_timestamp(row['Timestamp']).strftime(date_format)
+      bookmark.categories = row['Folder']
+      bookmark.tags.append(utils.get_tag_from_category(row['Folder']))
+      if not self.add(bookmark):
+        logger.debug(f'not able to add: {bookmark.url}')
+    return self

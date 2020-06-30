@@ -88,10 +88,17 @@ def main(args):
     return
 
   if args['import']:
-    bcd = BookmarkCollection()
-    bcd.load(json_fpath)
-    bcd.import_nbff(args['import'])
-    bcd.write_json(json_fpath)
+    bc = BookmarkCollection()
+    if json_fpath.stat().st_size > 0:
+      bc.load(json_fpath)
+    ftype = args['import'][0]
+    fpath = args['import'][1]
+    bc = BookmarkCollection()
+    if ftype == 'nbff':
+      bc.import_nbff(fpath)
+    elif ftype == 'insta':
+      bc.import_instapaper(fpath)
+    bc.write_json(json_fpath)
     return
 
   if args['add']:
