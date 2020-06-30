@@ -210,6 +210,27 @@ class BookmarkCollection:
     with open(fpath, 'w', encoding='utf8') as wf:
       wf.write(f'{self.md}\n')
 
+  def find(self, url, title):
+    if url == 'https://www.washingtonpost.com/technology/2019/11/26/e-books-libraries-are-huge-hit-leading-long-waits-reader-hacks-worried-publishers/':
+      print(f'trying find: {url}')
+    bookmark = self.find_by_url(url)
+    if not bookmark: bookmark = self.find_by_url_in_history(url)
+    if not bookmark: bookmark = self.find_by_title(title)
+    if not bookmark: bookmark = self.find_by_title_in_history(title)
+    return bookmark
+
+  def find_update(self, url, title):
+    bookmark = self.find_by_url(url)
+    if not bookmark: bookmark = self.find_by_url_in_history(url)
+    if bookmark:
+      bookmark.title = title
+      return bookmark
+    bookmark = self.find_by_title(title)
+    if not bookmark: bookmark = self.find_by_title_in_history(title)
+    if bookmark:
+      bookmark.url = url
+    return bookmark
+
   def find_by_url(self, url):
     return next((b for b in self.bookmarks if b.url == url), None)
 
@@ -412,10 +433,7 @@ class BookmarkCollectionParser(BookmarkCollection):
         url = child.get('href')
         title = child.text
         created = utils.get_date_from_unix_timestamp(child.get('add_date')).strftime(date_format)
-        bookmark = self.find_by_url(url)
-        if not bookmark: bookmark = self.find_by_url_in_history(url)
-        if not bookmark: bookmark = self.find_by_title(title)
-        if not bookmark: bookmark = self.find_by_title_in_history(title)
+        bookmark = self.find(url, title)
         if bookmark:
           if datetime.strptime(created, date_format) < datetime.strptime(bookmark.created, date_format):
             bookmark.created = created
