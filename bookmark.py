@@ -381,30 +381,31 @@ class BookmarkCollectionParser(BookmarkCollection):
 
   def _parse_md(self, data):
     cats = []
-    update = (len(self.bookmarks) > 0)
-    if update: bkms = self.bookmarks.copy()
+    bkms = self.bookmarks.copy()
+
     for line in data:
+
       # match bookmark line
       link_match = re.search(self.link_pattern, line)
       if link_match:
         url = link_match[2]
         title = link_match[1]
-        if update:
-          bu = self.find_by_url(url)
-          bt = self.find_by_title(title)
-          bookmark = bu if bu else bt
-          if bookmark:
+        bookmark = self.find_update(url, title)
+        if bookmark:
+          if bookmark in bkms:
             bkms.remove(bookmark)
-            if bu: bookmark.title = title
-            if bt: bookmark.url = url
-        if not update or not bookmark:
+          else:
+            logger.debug(f'not found: {bookmark.url}')
+        else:
           bookmark = Bookmark(url, title)
           if not self.add(bookmark):
             logger.debug(f'not able to add: {bookmark.url}')
+            continue
         if cats:
-          bookmark.tags = [ utils.get_tag_from_category(t) for t in cats ]
           bookmark.categories = ' > '.join(cats)
+          bookmark.add_tags([ utils.get_tag_from_category(t) for t in cats ])
         continue
+
       # match title line
       title_match = re.search(self.title_pattern, line)
       if title_match:
@@ -415,11 +416,14 @@ class BookmarkCollectionParser(BookmarkCollection):
           cats[level] = category
         else:
           cats.append(category)
+
     # remove missing bookmarks
-    if update:
-      for b in bkms:
-        if not self.delete(b):
-          logger.debug(f'not able to delete: {b.url}')
+    for b in bkms:
+      if not self.delete(b):
+        logger.debug(f'not able to delete: {b.url}')
+      else:
+        logger.debug(f'deleted: {b.url}')
+
     return self
 
   def import_nbff(self, data):
