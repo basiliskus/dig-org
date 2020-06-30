@@ -30,10 +30,9 @@ def main(args):
     print(bc.duplicate_urls())
     return
 
-  bc = BookmarkCollection()
-  bc.load(json_fpath)
-
   if args['validate']:
+    bc = BookmarkCollection()
+    bc.load(json_fpath)
     if args['validate'] == 'bookmarks':
       bc.validate()
       bc.write_json(json_fpath)
@@ -47,7 +46,8 @@ def main(args):
     return
 
   if args['list']:
-
+    bc = BookmarkCollection()
+    bc.load(json_fpath)
     if args['list'][0] == 'status':
       if len(args['list']) > 1:
         print('\n'.join(bc.get_urls('status', int(args['list'][1]))))
@@ -70,6 +70,8 @@ def main(args):
       return
 
   if args['update']:
+    bc = BookmarkCollection()
+    bc.load(json_fpath)
     if args['update'] == 'url':
       bc.update_urls()
       bc.write_json(json_fpath)
@@ -91,6 +93,8 @@ def main(args):
     return
 
   if args['add']:
+    bc = BookmarkCollection()
+    bc.load(json_fpath)
     url = args['add'][0]
     tags = args['add'][1] if len(args['add']) > 1 else None
     if bc.add_url(url, tags):
@@ -104,6 +108,8 @@ def main(args):
     return
 
   if args['delete']:
+    bc = BookmarkCollection()
+    bc.load(json_fpath)
     url = args['delete'][0]
     tag = args['delete'][1] if len(args['delete']) > 1 else None
     if tag:
