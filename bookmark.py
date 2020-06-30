@@ -141,6 +141,8 @@ class Bookmark:
 
 class BookmarkCollection:
 
+  ignore_titles = [ 'Untitled' , '']
+
   def __init__(self):
     self.bookmarks = []
 
@@ -212,6 +214,7 @@ class BookmarkCollection:
     return next((b for b in self.bookmarks if b.url == url), None)
 
   def find_by_title(self, title):
+    if title in self.ignore_titles: return None
     return next((b for b in self.bookmarks if b.title == title), None)
 
   def find_by_url_in_history(self, url):
@@ -223,6 +226,7 @@ class BookmarkCollection:
     return None
 
   def find_by_title_in_history(self, title):
+    if title in self.ignore_titles: return None
     for b in self.bookmarks:
       if not b.history: continue
       for h in b.history:
