@@ -398,9 +398,7 @@ class BookmarkCollectionParser(BookmarkCollection):
       if child.name == 'a':
         url = child.get('href')
         title = child.text
-        unix_timestamp = child.get('add_date')
-        unix_timestamp = int(unix_timestamp[:10]) if len(unix_timestamp) > 10 else int(unix_timestamp)
-        created = datetime.fromtimestamp(unix_timestamp).strftime(date_format)
+        created = utils.get_date_from_unix_timestamp(child.get('add_date')).strftime(date_format)
         bookmark = self.find_by_url(url)
         if not bookmark: bookmark = self.find_by_url_in_history(url)
         if not bookmark: bookmark = self.find_by_title(title)
