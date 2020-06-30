@@ -1,4 +1,5 @@
 import os
+from datetime import date, datetime
 
 def get_script_name(fname):
   return os.path.splitext(os.path.basename(fname))[0]
@@ -10,4 +11,4 @@ def strip(string, rmv):
 
 def get_date_from_unix_timestamp(uts):
   uts = int(uts[:10]) if len(uts) > 10 else int(uts)
-  return datetime.fromtimestamp(uts).strftime(date_format)
+  return datetime.fromtimestamp(uts)
