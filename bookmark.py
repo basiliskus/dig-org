@@ -26,10 +26,10 @@ class Bookmark:
 
   today = date.today().strftime(date_format)
 
-  def __init__(self, url='', title='', tags=None, categories=''):
+  def __init__(self, url='', title='', created=None, tags=None, categories=''):
     self.url = url
     self.title = title
-    self.created = self.today
+    self.created = created if created else self.today
     self.tags = tags if tags else []
     self.categories = categories
     self.validate = [ 'connection', 'url', 'title' ]
@@ -407,8 +407,7 @@ class BookmarkCollectionParser(BookmarkCollection):
           if datetime.strptime(created, date_format) < datetime.strptime(bookmark.created, date_format):
             bookmark.created = created
         else:
-          bookmark = Bookmark(url, title)
-          bookmark.created = created
+          bookmark = Bookmark(url, title, created)
           bookmark.categories = ' > '.join(cats)
           bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ t.replace(' ', '-').lower() for t in cats ]
           if not self.add(bookmark):
