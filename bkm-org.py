@@ -123,36 +123,36 @@ def main(args):
 
 def get_parser():
   parser = argparse.ArgumentParser(
-    description='Bookmark file manager',
+    description = 'Bookmark file manager',
     formatter_class = argparse.RawTextHelpFormatter
   )
   parser.add_argument(
     '-f',
     '--bookmark-file',
     dest = 'bookmarkfile',
-    action='store',
+    action = 'store',
     help = 'Specify bookmark file'
   ),
   parser.add_argument(
     '-v',
     '--validate',
-    action='store',
-    nargs='?',
-    const='bookmarks',
+    action = 'store',
+    nargs = '?',
+    const = 'bookmarks',
     help = 'Validate urls. If not url is given, validate bookmark collection'
   ),
   parser.add_argument(
     '-fd',
     '--find-duplicates',
     dest = 'findduplicates',
-    action='store_true',
+    action = 'store_true',
     help = 'Find duplicates in md file'
   ),
   parser.add_argument(
     '-l',
     '--list',
-    action='store',
-    nargs='+',
+    action = 'store',
+    nargs = '+',
     help = """List urls by property:
   'status':
     0: returns urls which failed to connect
@@ -160,34 +160,36 @@ def get_parser():
     none: returns all urls grouped by status
   'tag': return urls by tag
     none: return all urls grouped by tag
-  'created': return urls by creation date with format 'yyyy-mm-dd'
-    """
+  'created': return urls by creation date with format 'yyyy-mm-dd'"""
   ),
   parser.add_argument(
     '-u',
     '--update',
-    action='store',
+    action = 'store',
     choices = [ 'url', 'title', 'md', 'json' ],
     help = 'Update json file'
   ),
   parser.add_argument(
     '-i',
     '--import',
-    action='store',
-    help = 'Import Netscape Bookmark File'
+    action = 'store',
+    nargs = 2,
+    help = """Import bookmarks from:
+  nbff: Netscape Bookmark File format
+  insta: Instapaper"""
   ),
   parser.add_argument(
     '-a',
     '--add',
-    nargs='+',
-    action='store',
+    nargs = '+',
+    action = 'store',
     help = 'Add url and tags if provided (tags are separated by comma and without space). If url exists, adds tags to url'
   ),
   parser.add_argument(
     '-d',
     '--delete',
-    nargs='+',
-    action='store',
+    nargs = '+',
+    action = 'store',
     help = 'Delete url or tag (if tag provided, url exists and has the tag)'
   )
   return parser
