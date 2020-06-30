@@ -338,7 +338,6 @@ class LastHttpRequest:
 class BookmarkCollectionParser(BookmarkCollection):
 
   title_pattern = r'^(#+)\s+(.+)$'
-  # link_pattern = r'^\*\s\[(.+)\]\s*\((https?:\/\/[\w\d./?=#]+)\)\s*$'
   link_pattern = r'^\*\s\[(.*)\]\s*\((https?:\/\/.+)\)\s*$'
 
   def __init__(self, ftype, bookmarks=None):
