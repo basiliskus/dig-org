@@ -291,10 +291,6 @@ class BookmarkCollection:
       logger.debug(b.url)
       b.verify()
 
-  def duplicate_urls(self):
-    urls = [ b.url for b in self.bookmarks ]
-    return '\n'.join(set([ u for u in urls if urls.count(u) > 1 ]))
-
   def update_urls(self):
     for b in self.bookmarks:
       if b.last_request and b.last_request.redirect:

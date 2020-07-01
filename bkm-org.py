@@ -24,14 +24,6 @@ def main(args):
   else:
     json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
-  md_fpath = json_fpath.with_suffix('.md')
-
-  if args['findduplicates']:
-    bc = BookmarkCollection()
-    bc.load(md_fpath)
-    print(bc.duplicate_urls())
-    return
-
   if args['validate']:
     bc = BookmarkCollection()
     bc.load(json_fpath)
