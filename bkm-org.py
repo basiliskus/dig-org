@@ -25,107 +25,125 @@ def main(args):
     json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
   if args['validate']:
-    bc = BookmarkCollection()
-    bc.load(json_fpath)
-    if args['validate'] == 'bookmarks':
+    bc = BookmarkCollection(json_fpath)
+    if args['validate'] == 'collection':
       bc.validate()
-      bc.write_json(json_fpath)
+      bc.write()
     else:
-      b = Bookmark(args['validate'])
-      if b.verify():
-        lr = b.last_request
-        print(f'validated:\n connected: {lr.connected}\n status: {lr.status}\n redirect: {lr.redirect}\n title: {lr.title}\n')
-      else:
-        print('not able to validate')
+      validate_url(bc, args['validate'])
     return
 
   if args['list']:
-    bc = BookmarkCollection()
-    bc.load(json_fpath)
-    if args['list'][0] == 'status':
-      if len(args['list']) > 1:
-        print('\n'.join(bc.get_urls('status', int(args['list'][1]))))
-      else:
-        print(bc.get_grouped_bookmarks_str('status'))
-      return
-
-    if args['list'][0] == 'tag':
-      if len(args['list']) > 1:
-        print('\n'.join(bc.get_urls('tag', args['list'][1])))
-      else:
-        print(bc.get_grouped_bookmarks_str('tag'))
-      return
-
-    if args['list'][0] == 'created':
-      if len(args['list']) > 1:
-        print('\n'.join(bc.get_urls('created', args['list'][1])))
-      else:
-        print(bc.get_grouped_bookmarks_str('created'))
-      return
+    bc = BookmarkCollection(json_fpath)
+    ltype = args['list'][0]
+    value = args['list'][1] if len(args['list']) > 1 else None
+    if value:
+      urls = bc.get_urls(ltype, value)
+      print_list(urls)
+    else:
+      grouped_urls = bc.get_grouped_urls(ltype)
+      print_dict(grouped_urls)
+    return
 
   if args['update']:
-    bc = BookmarkCollection()
-    bc.load(json_fpath)
-    if args['update'] == 'url':
-      bc.update_urls()
-      bc.write_json(json_fpath)
-    if args['update'] == 'title':
-      bc.update_titles()
-      bc.write_json(json_fpath)
-    elif args['update'] == 'md':
-      bc.write_md(json_fpath.with_suffix('.md'))
-    elif args['update'] == 'json':
-      bc.load(md_fpath)
-      bc.write_json(md_fpath.with_suffix('.json'))
+    utype = args['update']
+    bc = BookmarkCollection(json_fpath)
+    update_bookmarks(bc, utype)
     return
 
   if args['import']:
+    itype = args['import'][0]
+    fpath = args['import'][1]
     bc = BookmarkCollection()
     if json_fpath.stat().st_size > 0:
       bc.load(json_fpath)
-    ftype = args['import'][0]
-    fpath = args['import'][1]
-    bc = BookmarkCollection()
-    if ftype == 'nbff':
-      bc.import_nbff(fpath)
-    elif ftype == 'insta':
-      bc.import_instapaper(fpath)
-    bc.write_json(json_fpath)
+    import_bookmarks(bc, itype, fpath, json_fpath)
     return
 
   if args['add']:
-    bc = BookmarkCollection()
-    bc.load(json_fpath)
     url = args['add'][0]
-    tags = args['add'][1] if len(args['add']) > 1 else None
-    if bc.add_url(url, tags):
-      bc.write_json(json_fpath)
-      print(f'{url}: successfully added to collection and saved at {json_fpath}')
-    elif bc.add_tags(url, tags.split(',')):
-      bc.write_json(json_fpath)
-      print(f"{url}: successfully added tags '{tags}' to url and saved at {json_fpath}")
-    else:
-      print(f'{url}: not able to add url to collection')
+    tags = args['add'][1].split(',') if len(args['add']) > 1 else None
+    bc = BookmarkCollection(json_fpath)
+    add_urls_andor_tags(bc, url, tags)
     return
 
   if args['delete']:
-    bc = BookmarkCollection()
-    bc.load(json_fpath)
     url = args['delete'][0]
     tag = args['delete'][1] if len(args['delete']) > 1 else None
+    bc = BookmarkCollection(json_fpath)
     if tag:
-      if bc.delete_tag(url, tag):
-        bc.write_json(json_fpath)
-        print(f"{url}: successfully deleted tag '{tag}' and saved at {json_fpath}")
-      else:
-        print(f"{url}: not able to delete tag '{tag}'")
-      return
-    if bc.delete_url(url):
-      bc.write_json(json_fpath)
-      print(f'{url}: successfully deleted from collection and saved at {json_fpath}')
+      delete_tag(bc, url, tag)
     else:
-      print(f'{url}: not able to delete url from collection')
+      delete_url(bc, url)
     return
+
+
+def validate_url(bc, url):
+  b = Bookmark(url)
+  if b.verify():
+    print_bookmark(b)
+  else:
+    print('not able to validate')
+
+def print_bookmark(b):
+  print(f"""url: {b.url}
+title: {b.last_request.title}
+connected: {b.last_request.connected}
+status: {b.last_request.status}
+redirect: {b.last_request.redirect}""")
+
+def print_list(l):
+  print('\n'.join(l))
+
+def print_dict(d):
+  for key in sorted(d.keys()):
+    print(f'{key}:')
+    for url in d[key]:
+      print(f'  {url}')
+
+def update_bookmarks(bc, utype):
+  if utype == 'url':
+    bc.update_urls()
+    bc.write()
+  elif utype == 'title':
+    bc.update_titles()
+    bc.write()
+  elif utype == 'md':
+    bc.write_md()
+  elif utype == 'json':
+    bc.import_md()
+    bc.write_json()
+
+def import_bookmarks(bc, itype, input, output):
+  if itype == 'nbff':
+    bc.import_nbff(input)
+  elif itype == 'insta':
+    bc.import_instapaper(input)
+  bc.write(output)
+
+def add_urls_andor_tags(bc, url, tags):
+  if bc.add_url(url, tags):
+    bc.write()
+    print(f'{url}: successfully added to collection and saved at {bc.fpath}')
+  elif bc.add_tags(url, tags):
+    bc.write()
+    print(f"{url}: successfully added tags '{tags}' to url and saved at {bc.fpath}")
+  else:
+    print(f'{url}: not able to add url to collection')
+
+def delete_tag(bc, url, tag):
+  if bc.delete_tag(url, tag):
+    bc.write()
+    print(f"{url}: successfully deleted tag '{tag}' and saved at {bc.fpath}")
+  else:
+    print(f"{url}: not able to delete tag '{tag}'")
+
+def delete_url(bc, url):
+  if bc.delete_url(url):
+    bc.write()
+    print(f'{url}: successfully deleted from collection and saved at {bc.fpath}')
+  else:
+    print(f'{url}: not able to delete url from collection')
 
 
 def get_parser():
@@ -145,7 +163,7 @@ def get_parser():
     '--validate',
     action = 'store',
     nargs = '?',
-    const = 'bookmarks',
+    const = 'collection',
     help = 'Validate urls. If not url is given, validate bookmark collection'
   ),
   parser.add_argument(
