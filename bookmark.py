@@ -309,25 +309,19 @@ class BookmarkCollection:
   def get_urls(self, value, by):
     return [ b.url for b in self.get_bookmarks(value, by) ]
 
-  def get_grouped_bookmarks_str(self, by):
+  def get_grouped_urls(self, by):
+    result = defaultdict(list)
     if by == 'status':
-      values = list(set([ b.status['code'] for b in self.bookmarks ]))
-      get_title = lambda code: f"{code} ({statusd[code]}):"
+      for b in self.bookmarks:
+        result[f"{b.status['code']} ({statusd[b.status['code']]})"].append(b.url)
     elif by == 'tag':
-      tags = [ b.tags for b in self.bookmarks ]
-      values = list(set([ tag for st in tags for tag in st ]))
-      get_title = lambda tag: f'{tag}:'
+      for b in self.bookmarks:
+        for tag in b.tags:
+          result[tag].append(b.url)
     elif by == 'created':
-      values = list(set([ b.created for b in self.bookmarks ]))
-      get_title = lambda created: f'{created}:'
-
-    response = []
-    for value in sorted(values):
-      title = get_title(value)
-      response.append(title)
-      for b in self.get_bookmarks(by, value):
-        response.append(f'  {b.url}')
-    return '\n'.join(response)
+      for b in self.bookmarks:
+        result[b.created].append(b.url)
+    return result
 
 
 class LastHttpRequest:
