@@ -216,23 +216,19 @@ class BookmarkCollection:
     with open(fpath, 'w', encoding='utf8') as wf:
       wf.write(f'{self.md}\n')
 
-  def find(self, url, title):
+  def find(self, url, title=None):
     bookmark = self.find_by_url(url)
     if not bookmark: bookmark = self.find_by_url_in_history(url)
+    if not title: return bookmark
     if not bookmark: bookmark = self.find_by_title(title)
     if not bookmark: bookmark = self.find_by_title_in_history(title)
     return bookmark
 
   def find_update(self, url, title):
     bookmark = self.find_by_url(url)
-    if not bookmark: bookmark = self.find_by_url_in_history(url)
+    bookmark = bookmark if bookmark else self.find_by_url_in_history(url)
     if bookmark:
       bookmark.title = title
-      return bookmark
-    bookmark = self.find_by_title(title)
-    if not bookmark: bookmark = self.find_by_title_in_history(title)
-    if bookmark:
-      bookmark.url = url
     return bookmark
 
   def find_by_url(self, url):
