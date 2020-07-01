@@ -199,6 +199,9 @@ class BookmarkCollection:
       bcp = BookmarkCollectionParser(fpath.suffix[1:], self.bookmarks)
       self.bookmarks = bcp.parse(data).bookmarks
 
+  def import_md(self):
+    self.load(self.fpath.with_suffix('.md'))
+
   def import_nbff(self, fpath):
     with open(fpath, encoding='utf-8') as file:
       data = bs4.BeautifulSoup(file, 'html.parser')
