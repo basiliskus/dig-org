@@ -326,7 +326,7 @@ class BookmarkCollection:
 
   def get_bookmarks(self, by, value):
     if by == 'status':
-      return [ b for b in self.bookmarks if b.status['code'] == value ]
+      return [ b for b in self.bookmarks if b.status['code'] == int(value) ]
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
     if by == 'created':
