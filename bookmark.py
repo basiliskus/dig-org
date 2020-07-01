@@ -144,8 +144,11 @@ class BookmarkCollection:
 
   ignore_titles = [ 'Untitled' , '']
 
-  def __init__(self):
+  def __init__(self, fpath=None):
     self.bookmarks = []
+    self.fpath = fpath
+    if fpath:
+      self.load(fpath)
 
   def add(self, bookmark):
     found = self.find_by_url(bookmark.url)
@@ -207,12 +210,35 @@ class BookmarkCollection:
       bcp = BookmarkCollectionParser('insta', self.bookmarks)
       self.bookmarks = bcp.import_instapaper(reader).bookmarks
 
-  def write_json(self, fpath):
+  def write(self, fpath=None):
+    if not fpath and self.fpath:
+      fpath = self.fpath
+    elif not self.fpath:
+      raise ValueError(f"no file path to write to defined")
+
+    if fpath.suffix == '.json':
+      self.write_json(fpath)
+    elif fpath.suffix == '.md':
+      self.write_md(fpath)
+    else:
+      raise ValueError(f"cannot handle file with extension '{fpath.suffix}'")
+
+  def write_json(self, fpath=None):
+    if not fpath and self.fpath:
+      fpath = self.fpath.with_suffix('.json')
+    elif not self.fpath:
+      raise ValueError(f"no file path to write to defined")
+
     with open(fpath, 'w', encoding='utf8') as wf:
       json.dump(self.json, wf, indent=2, ensure_ascii=False)
       wf.write('\n')
 
-  def write_md(self, fpath):
+  def write_md(self, fpath=None):
+    if not fpath and self.fpath:
+      fpath = self.fpath.with_suffix('.md')
+    elif not self.fpath:
+      raise ValueError(f"no file path to write to defined")
+
     with open(fpath, 'w', encoding='utf8') as wf:
       wf.write(f'{self.md}\n')
 
