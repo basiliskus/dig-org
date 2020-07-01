@@ -183,17 +183,16 @@ class BookmarkCollection:
     return False
 
   def load(self, fpath):
-    suffix = Path(fpath).suffix
-    if suffix == '.json':
+    if fpath.suffix == '.json':
       get_data = lambda f: json.load(f)
-    elif suffix == '.md':
+    elif fpath.suffix == '.md':
       get_data = lambda f: f.readlines()
     else:
-      raise ValueError(f"cannot handle file with extension '{suffix}'")
+      raise ValueError(f"cannot handle file with extension '{fpath.suffix}'")
 
     with open(fpath, encoding='utf-8') as file:
       data = get_data(file)
-      bcp = BookmarkCollectionParser(suffix[1:], self.bookmarks)
+      bcp = BookmarkCollectionParser(fpath.suffix[1:], self.bookmarks)
       self.bookmarks = bcp.parse(data).bookmarks
 
   def import_nbff(self, fpath):
