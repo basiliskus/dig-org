@@ -6,6 +6,7 @@ import requests
 from pathlib import Path
 from http.client import responses
 from datetime import date, datetime
+from collections import defaultdict
 
 from modules import log
 from modules import utils
