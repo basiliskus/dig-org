@@ -395,7 +395,7 @@ class BookmarkCollectionParser(BookmarkCollection):
           if bookmark in bkms:
             bkms.remove(bookmark)
           else:
-            logger.debug(f'not found: {bookmark.url}')
+            logger.debug(f'duplicated: {bookmark.url}')
         else:
           bookmark = Bookmark(url, title)
           if not self.add(bookmark):
