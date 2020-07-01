@@ -140,7 +140,8 @@ class Bookmark:
       code = 0
     else:
       code = self.last_request.status
-    return { "code": code, "name": statusd[code] }
+    status_name = statusd[code] if code in statusd else 'Unknown Status Code'
+    return { "code": code, "name": status_name }
 
 
 class BookmarkCollection:
@@ -343,7 +344,7 @@ class BookmarkCollection:
     result = defaultdict(list)
     if by == 'status':
       for b in self.bookmarks:
-        result[f"{b.status['code']} ({statusd[b.status['code']]})"].append(b.url)
+        result[f"{b.status['code']} ({b.status['name']})"].append(b.url)
     elif by == 'tag':
       for b in self.bookmarks:
         for tag in b.tags:
