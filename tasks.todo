@@ -53,7 +53,11 @@ Bookmark Organizer (bkm-org):
  [x] add cli options to: @done (20-06-30 12:17)
    [x] validate links: url, title @done (20-06-26 16:55)
    [x] add bookmark and tags @done (20-06-29 17:58)
-   [x] get links by tag @done (20-06-26 18:01)
+   [ ] lists urls by:
+      [x] domain name @done (20-07-01 10:53)
+      [x] tag @done (20-06-26 18:01)
+      [x] status @done (20-06-26 18:01)
+      [x] creation date @done (20-06-26 18:01)
  [x] choose what to validate for each bookmark: url, title @done (20-06-27 15:22)
  [x] import from firefox and chrome @done (20-06-28 21:07)
  [x] use tags/labels @done (20-06-25 23:50)

@@ -189,14 +189,17 @@ def get_parser():
     '--list',
     action = 'store',
     nargs = '+',
-    help = """List urls by property:
+    help = """List urls by property. If no parameter is given to the property, it returns all urls grouped by the property:
   'status':
     0: returns urls which failed to connect
     10: returns urls with unknown status
-    none: returns all urls grouped by status
-  'tag': return urls by tag
-    none: return all urls grouped by tag
-  'created': return urls by creation date with format 'yyyy-mm-dd'"""
+    <code>: returns urls with status code <code>
+  'tag':
+    <tag_name>: return urls by tag <tag_name>
+  'created':
+    <date>: return urls by creation date <date> with format 'yyyy-mm-dd'
+  'domain':
+    <domain>: return urls by <domain>'"""
   ),
   parser.add_argument(
     '-s',
