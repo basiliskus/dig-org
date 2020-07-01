@@ -39,6 +39,7 @@ def main(args):
     import_bookmarks(bc, itype, fpath, json_fpath)
     return
 
+  urls = None
   if args['list']:
     bc = BookmarkCollection(json_fpath)
     ltype = args['list'][0]
