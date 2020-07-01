@@ -1,6 +1,7 @@
 import argparse
-import requests
 from pathlib import Path
+
+import requests
 
 from modules import log
 from modules import utils
