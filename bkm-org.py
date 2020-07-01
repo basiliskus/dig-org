@@ -24,27 +24,6 @@ def main(args):
   else:
     json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
-  if args['validate']:
-    bc = BookmarkCollection(json_fpath)
-    if args['validate'] == 'collection':
-      bc.validate()
-      bc.write()
-    else:
-      validate_url(bc, args['validate'])
-    return
-
-  if args['list']:
-    bc = BookmarkCollection(json_fpath)
-    ltype = args['list'][0]
-    value = args['list'][1] if len(args['list']) > 1 else None
-    if value:
-      urls = bc.get_urls(ltype, value)
-      print_list(urls)
-    else:
-      grouped_urls = bc.get_grouped_urls(ltype)
-      print_dict(grouped_urls)
-    return
-
   if args['update']:
     utype = args['update']
     bc = BookmarkCollection(json_fpath)
@@ -60,6 +39,36 @@ def main(args):
     import_bookmarks(bc, itype, fpath, json_fpath)
     return
 
+  if args['list']:
+    bc = BookmarkCollection(json_fpath)
+    ltype = args['list'][0]
+    value = args['list'][1] if len(args['list']) > 1 else None
+    if value:
+      urls = bc.get_urls(ltype, value)
+      if should_print(args):
+        print_list(urls)
+        return
+    else:
+      grouped_urls = bc.get_grouped_urls(ltype)
+      if should_print(args):
+        print_dict(grouped_urls)
+        return
+
+  if args['validate']:
+    bc = BookmarkCollection(json_fpath)
+    if urls:
+      for u in urls:
+        validate_url(bc, u)
+        print()
+    else:
+      url = args['validate']
+      if url == 'collection':
+        bc.validate()
+        bc.write()
+      else:
+        validate_url(bc, url)
+    return
+
   if args['add']:
     url = args['add'][0]
     tags = args['add'][1].split(',') if len(args['add']) > 1 else None
@@ -68,15 +77,22 @@ def main(args):
     return
 
   if args['delete']:
-    url = args['delete'][0]
-    tag = args['delete'][1] if len(args['delete']) > 1 else None
     bc = BookmarkCollection(json_fpath)
-    if tag:
-      delete_tag(bc, url, tag)
+    if urls:
+      for u in urls:
+        delete_url(bc, u)
     else:
-      delete_url(bc, url)
+      url = args['delete'][0]
+      tag = args['delete'][1] if len(args['delete']) > 1 else None
+      if tag:
+        delete_tag(bc, url, tag)
+      else:
+        delete_url(bc, url)
     return
 
+
+def should_print(args):
+  return args['validate'] is None and args['delete'] is None
 
 def validate_url(bc, url):
   b = Bookmark(url)
@@ -87,9 +103,9 @@ def validate_url(bc, url):
 
 def print_bookmark(b):
   print(f"""url: {b.url}
-title: {b.last_request.title}
 connected: {b.last_request.connected}
 status: {b.last_request.status}
+title: {b.last_request.title}
 redirect: {b.last_request.redirect}""")
 
 def print_list(l):
@@ -206,7 +222,8 @@ def get_parser():
   parser.add_argument(
     '-d',
     '--delete',
-    nargs = '+',
+    nargs = '?',
+    const = 'piped_urls',
     action = 'store',
     help = 'Delete url or tag (if tag provided, url exists and has the tag)'
   )
