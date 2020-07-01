@@ -74,7 +74,7 @@ class Bookmark:
 
   def verify(self):
     try:
-      response = requests.get(self.url)
+      response = requests.get(self.url, timeout=(2, 10))
     except Exception as e:
       self.last_request = LastHttpRequest(False)
       logger.debug(f"couldn't connect to: {self.url}")
