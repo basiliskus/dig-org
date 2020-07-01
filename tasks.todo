@@ -1,12 +1,13 @@
 General:
- [ ] create tag ontology system
+ [ ] rename project to dig-org @low
+ [ ] add music, video and media playlist organizer @high
  [ ] add article/reading bookmark system
- [ ] add music playlist organizer
+ [ ] create tag ontology system
  [ ] pick and add license
 Task Organizer (task-org):
  [ ] write tests
- [ ] add cli options to:
  [ ] check overlapping features with org-mode: https://orgmode.org & https://github.com/danielmagnussons/orgmode
+ [ ] add cli options to:
    [ ] add tasks
    [x] display tasks for today, this week, next week and future days @done (20-06-17 21:32)
    [x] update @done (20-06-17 21:32)
@@ -32,7 +33,7 @@ Bookmark Organizer (bkm-org):
    [ ] validate json and markdown files
    [ ] assert md <=> json works
    [ ] assert uniqueness
- [ ] handle multiple bookmark collections
+ [ ] handle multiple bookmark collections @high
    [ ] handle temporary bookmarks
  [ ] import bookmarks from instapaper
    [ ] add selection/highlighting feature
