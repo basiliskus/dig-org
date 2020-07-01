@@ -314,12 +314,12 @@ class BookmarkCollection:
       logger.debug(b.url)
       b.verify()
 
-  def update_urls(self):
+  def sync_urls(self):
     for b in self.bookmarks:
       if b.last_request and b.last_request.redirect:
         b.update_url(b.last_request.redirect)
 
-  def update_titles(self):
+  def sync_titles(self):
     for b in self.bookmarks:
       if b.last_request and b.last_request.title:
         b.update_title(b.last_request.title)

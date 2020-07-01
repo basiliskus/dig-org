@@ -24,10 +24,10 @@ def main(args):
   else:
     json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
 
-  if args['update']:
-    utype = args['update']
+  if args['sync']:
+    utype = args['sync']
     bc = BookmarkCollection(json_fpath)
-    update_bookmarks(bc, utype)
+    sync_bookmarks(bc, utype)
     return
 
   if args['import']:
@@ -117,12 +117,12 @@ def print_dict(d):
     for url in d[key]:
       print(f'  {url}')
 
-def update_bookmarks(bc, utype):
+def sync_bookmarks(bc, utype):
   if utype == 'url':
-    bc.update_urls()
+    bc.sync_urls()
     bc.write()
   elif utype == 'title':
-    bc.update_titles()
+    bc.sync_titles()
     bc.write()
   elif utype == 'md':
     bc.write_md()
@@ -197,11 +197,11 @@ def get_parser():
   'created': return urls by creation date with format 'yyyy-mm-dd'"""
   ),
   parser.add_argument(
-    '-u',
-    '--update',
+    '-s',
+    '--sync',
     action = 'store',
     choices = [ 'url', 'title', 'md', 'json' ],
-    help = 'Update json file'
+    help = 'Sync json file'
   ),
   parser.add_argument(
     '-i',
