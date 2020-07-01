@@ -218,8 +218,6 @@ class BookmarkCollection:
       wf.write(f'{self.md}\n')
 
   def find(self, url, title):
-    if url == 'https://www.washingtonpost.com/technology/2019/11/26/e-books-libraries-are-huge-hit-leading-long-waits-reader-hacks-worried-publishers/':
-      print(f'trying find: {url}')
     bookmark = self.find_by_url(url)
     if not bookmark: bookmark = self.find_by_url_in_history(url)
     if not bookmark: bookmark = self.find_by_title(title)
