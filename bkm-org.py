@@ -149,13 +149,6 @@ def get_parser():
     help = 'Validate urls. If not url is given, validate bookmark collection'
   ),
   parser.add_argument(
-    '-fd',
-    '--find-duplicates',
-    dest = 'findduplicates',
-    action = 'store_true',
-    help = 'Find duplicates in md file'
-  ),
-  parser.add_argument(
     '-l',
     '--list',
     action = 'store',
