@@ -7,6 +7,7 @@ from http.client import responses
 from datetime import date, datetime
 from collections import defaultdict
 
+import cgi
 import bs4
 import requests
 from tld import get_fld
@@ -29,6 +30,7 @@ class Bookmark:
   def __init__(self, url='', title='', created=None, tags=None, categories=''):
     self.url = url
     self.title = title
+    self.mtype = None
     self.created = created if created else self.today
     self.tags = tags if tags else []
     self.categories = categories
@@ -39,6 +41,8 @@ class Bookmark:
   def parse_json(self, data):
     self.url = data['url']
     self.title = data['title']
+    if 'mediaType' in data:
+      self.mtype = data['mediaType']
     self.created = data['created']
     self.tags = data['tags']
     self.categories = data['categories']
@@ -56,14 +60,15 @@ class Bookmark:
 
   @property
   def json(self):
-    data = {
-      "url": self.url,
-      "title": self.title,
-      "created": self.created,
-      "tags": self.tags,
-      "categories": self.categories,
-      "validate": self.validate
-    }
+    data = {}
+    data["url"] = self.url
+    data["title"] = self.title
+    if self.mtype:
+      data["mediaType"] = self.mtype
+    data["created"] = self.created
+    data["tags"] = self.tags
+    data["categories"] = self.categories
+    data["validate"] = self.validate
     if self.last_request:
       data["lastHttpRequest"] = self.last_request.json
     if self.history:
@@ -84,6 +89,14 @@ class Bookmark:
     # get redirect url
     if 'url' in self.validate and response.url != self.url:
       self.last_request.redirect = response.url
+
+    ctype = response.headers.get('content-type', None)
+    if ctype:
+      self.mtype = cgi.parse_header(ctype)[0]
+    else:
+      logger.debug(f"not able to get content-type for '{self.url}'")
+
+    if self.mtype != 'text/html': return True
 
     # get title
     if 'title' in self.validate:

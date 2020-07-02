@@ -40,6 +40,7 @@ Bookmark Organizer (bkm-org):
  [ ] create chrome/firefox plugin:
    [ ] sync (import/export) and open webpage with bookmarks
    [ ] bookmark navigator: go to next/prev website
+ [x] add media type property to bookmark @done (20-07-02 12:20)
  [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
  [x] store in json file @done (20-06-25 16:05)
  [x] create bookmark classes @done (20-06-25 23:48)
