@@ -80,7 +80,7 @@ class Bookmark:
       response = requests.get(self.url, timeout=(2, 10))
     except Exception as e:
       self.last_request = LastHttpRequest(False)
-      logger.info(f"error connecting to: {self.url}")
+      logger.error(f"error connecting to: {self.url}")
       logger.debug(str(e))
       return False
 
