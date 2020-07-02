@@ -81,7 +81,7 @@ class Bookmark:
     except Exception as e:
       self.last_request = LastHttpRequest(False)
       logger.error(f"error connecting to: {self.url}")
-      logger.debug(str(e))
+      logger.debug(e)
       return False
 
     self.last_request = LastHttpRequest(True, response.status_code)
