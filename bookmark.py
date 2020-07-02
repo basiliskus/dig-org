@@ -15,16 +15,14 @@ from modules import utils
 from modules import config
 
 
-
-statusd = responses.copy()
-statusd[0] = 'Connection Failed'
-statusd[10] = 'Unknown'
-
 logger = logging.getLogger('bkm-org')
 date_format = '%Y-%m-%d'
 
-
 class Bookmark:
+
+  statusd = responses.copy()
+  statusd[0] = 'Connection Failed'
+  statusd[10] = 'Unknown'
 
   today = date.today().strftime(date_format)
 
@@ -139,7 +137,7 @@ class Bookmark:
       code = 0
     else:
       code = self.last_request.status
-    status_name = statusd[code] if code in statusd else 'Unknown Status Code'
+    status_name = self.statusd[code] if code in self.statusd else 'Unknown Status Code'
     return { "code": code, "name": status_name }
 
 
