@@ -117,9 +117,9 @@ class Bookmark:
   def fetch_title(self, response=None):
     if not response:
       try:
-        response = requests.get(self.url)
       except Exception:
         logger.debug(f"not able to get response from '{self.url}' to fecth title", exc_info=True)
+        response = requests.get(self.url, timeout=(2, 10))
         return ''
 
     html = bs4.BeautifulSoup(response.text, 'html.parser')
