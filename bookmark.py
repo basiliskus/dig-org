@@ -30,7 +30,7 @@ class Bookmark:
   def __init__(self, url='', title='', created=None, tags=None, categories=''):
     self.url = url
     self.title = title
-    self.mtype = None
+    self.mtype = 'unknown'
     self.created = created if created else self.today
     self.tags = tags if tags else []
     self.categories = categories
@@ -63,8 +63,7 @@ class Bookmark:
     data = {}
     data["url"] = self.url
     data["title"] = self.title
-    if self.mtype:
-      data["mediaType"] = self.mtype
+    data["mediaType"] = self.mtype
     data["created"] = self.created
     data["tags"] = self.tags
     data["categories"] = self.categories
