@@ -1,6 +1,7 @@
 import re
 import csv
 import json
+import logging
 from pathlib import Path
 from http.client import responses
 from datetime import date, datetime
@@ -10,19 +11,16 @@ import bs4
 import requests
 from tld import get_fld
 
-from modules import log
 from modules import utils
 from modules import config
 
 
-config = config.get_config('config')
-log_path = Path(config['global']['log_path'])
-logger = log.get_logger(utils.get_script_name(__file__), log_path=log_path)
 
 statusd = responses.copy()
 statusd[0] = 'Connection Failed'
 statusd[10] = 'Unknown'
 
+logger = logging.getLogger('bkm-org')
 date_format = '%Y-%m-%d'
 
 
@@ -79,8 +77,8 @@ class Bookmark:
       response = requests.get(self.url, timeout=(2, 10))
     except Exception as e:
       self.last_request = LastHttpRequest(False)
-      logger.debug(f"couldn't connect to: {self.url}")
-      logger.exception(e)
+      logger.info(f"error connecting to: {self.url}")
+      logger.debug(str(e))
       return False
 
     self.last_request = LastHttpRequest(True, response.status_code)
@@ -109,7 +107,8 @@ class Bookmark:
     if not response:
       try:
         response = requests.get(self.url)
-      except:
+      except Exception:
+        logger.debug(f"not able to get response from '{self.url}' to fecth title", exc_info=True)
         return ''
 
     html = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -312,9 +311,9 @@ class BookmarkCollection:
     for b in self.bookmarks:
       if not 'connection' in b.validate:
         b.last_request = None
-        logger.debug(f'{b.url} (skip)')
+        logger.info(f'{b.url} (skip)')
         continue
-      logger.debug(b.url)
+      logger.info(b.url)
       b.verify()
 
   def sync_urls(self):

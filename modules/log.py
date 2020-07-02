@@ -3,7 +3,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 LOG_EXTENSION = '.log'
 
-def get_logger(fname, log_path='logs', file_log_level='INFO', console_log_level='DEBUG', file_handler_type=None):
+def get_logger(fname, log_path='logs', file_log_level='DEBUG', console_log_level='INFO', file_handler_type=None):
 
   date_format = '%Y/%m/%d %H:%M:%S'
   fh_format = '[%(asctime)s][%(levelname)s][%(funcName)s] %(message)s'
