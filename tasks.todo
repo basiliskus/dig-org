@@ -1,6 +1,7 @@
 General:
  [ ] rename project to dig-org @low
  [ ] add music, video and media playlist organizer @high
+   [ ] check JSON Shareable Playlist Format: https://www.xspf.org/jspf/
  [ ] add article/reading bookmark system
  [ ] create tag ontology system
  [ ] pick and add license
