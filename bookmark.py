@@ -346,6 +346,8 @@ class BookmarkCollection:
       return [ b for b in self.bookmarks if value in b.created ]
     if by == 'domain':
       return [ b for b in self.bookmarks if get_fld(b.url) == value ]
+    if by == 'media':
+      return [ b for b in self.bookmarks if value in b.mtype ]
 
   def get_urls(self, value, by):
     return [ b.url for b in self.get_bookmarks(value, by) ]
@@ -365,6 +367,9 @@ class BookmarkCollection:
     elif by == 'domain':
       for b in self.bookmarks:
         result[get_fld(b.url)].append(b.url)
+    elif by == 'media':
+      for b in self.bookmarks:
+        result[b.mtype].append(b.url)
     return result
 
 

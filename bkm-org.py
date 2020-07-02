@@ -107,6 +107,7 @@ def print_bookmark(b):
   print(f"""url: {b.url}
 connected: {b.last_request.connected}
 status: {b.last_request.status}
+media-type: {b.mtype}
 title: {b.last_request.title}
 redirect: {b.last_request.redirect}""")
 
@@ -199,7 +200,9 @@ def get_parser():
   'created':
     <date>: return urls by creation date <date> with format 'yyyy-mm-dd'
   'domain':
-    <domain>: return urls by <domain>'"""
+    <domain>: return urls by <domain>'
+  'media':
+    <media_type>: return urls by <media-type>'"""
   ),
   parser.add_argument(
     '-s',
