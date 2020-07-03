@@ -332,11 +332,13 @@ class BookmarkCollection:
     for b in self.bookmarks:
       if b.last_request and b.last_request.redirect:
         b.update_url(b.last_request.redirect)
+        b.last_request.redirect = None
 
   def sync_titles(self):
     for b in self.bookmarks:
       if b.last_request and b.last_request.title:
         b.update_title(b.last_request.title)
+        b.last_request.title = None
 
   def get_bookmarks(self, by, value):
     if by == 'status':
