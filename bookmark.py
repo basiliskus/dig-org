@@ -91,7 +91,8 @@ class Bookmark:
 
     ctype = response.headers.get('content-type', None)
     if ctype:
-      self.mtype = cgi.parse_header(ctype)[0]
+      if not self.mtype:
+        self.mtype = cgi.parse_header(ctype)[0]
     else:
       logger.debug(f"not able to get content-type for '{self.url}'")
 
