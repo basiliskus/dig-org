@@ -66,7 +66,7 @@ def main(args):
       url = args['validate']
       if url == 'collection':
         bc.validate()
-        bc.write()
+        save_bookmarks(bc)
       else:
         validate_url(bc, url)
     return
@@ -83,6 +83,7 @@ def main(args):
     if urls:
       for u in urls:
         delete_url(bc, u)
+      save_bookmarks(bc)
     else:
       url = args['delete'][0]
       tag = args['delete'][1] if len(args['delete']) > 1 else None
@@ -90,6 +91,7 @@ def main(args):
         delete_tag(bc, url, tag)
       else:
         delete_url(bc, url)
+      save_bookmarks(bc)
     return
 
 
@@ -142,27 +144,27 @@ def import_bookmarks(bc, itype, input, output):
 
 def add_urls_andor_tags(bc, url, tags):
   if bc.add_url(url, tags):
-    bc.write()
     print(f'{url}: successfully added to collection and saved at {bc.fpath}')
   elif bc.add_tags(url, tags):
-    bc.write()
     print(f"{url}: successfully added tags '{tags}' to url and saved at {bc.fpath}")
   else:
     print(f'{url}: not able to add url to collection')
 
 def delete_tag(bc, url, tag):
   if bc.delete_tag(url, tag):
-    bc.write()
     print(f"{url}: successfully deleted tag '{tag}' and saved at {bc.fpath}")
   else:
     print(f"{url}: not able to delete tag '{tag}'")
 
 def delete_url(bc, url):
   if bc.delete_url(url):
-    bc.write()
     print(f'{url}: successfully deleted from collection and saved at {bc.fpath}')
   else:
     print(f'{url}: not able to delete url from collection')
+
+def save_bookmarks(bc):
+  bc.write()
+  print(f'saved at {bc.fpath}')
 
 
 def get_parser():
