@@ -72,10 +72,20 @@ def main(args):
     return
 
   if args['add']:
-    url = args['add'][0]
-    tags = args['add'][1].split(',') if len(args['add']) > 1 else None
     bc = BookmarkCollection(json_fpath)
-    add_urls_andor_tags(bc, url, tags)
+    if urls:
+      tags = args['add'][0].split(',')
+      for u in urls:
+        if bc.add_tags(u, tags):
+          print(f"{u}: successfully added tags '{tags}'")
+        else:
+          print(f"{u}: not able to add tags '{tags}'")
+      save_bookmarks(bc)
+    else:
+      url = args['add'][0]
+      tags = args['add'][1].split(',') if len(args['add']) > 1 else None
+      add_urls_andor_tags(bc, url, tags)
+      save_bookmarks(bc)
     return
 
   if args['delete']:
@@ -96,7 +106,7 @@ def main(args):
 
 
 def should_print(args):
-  return args['validate'] is None and args['delete'] is None
+  return args['validate'] is None and args['delete'] is None and args['add'] is None
 
 def validate_url(bc, url):
   b = Bookmark(url)
