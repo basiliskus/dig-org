@@ -1,6 +1,7 @@
 import re
 import csv
 import json
+import uuid
 import logging
 from pathlib import Path
 from http.client import responses
@@ -28,6 +29,7 @@ class Bookmark:
   today = date.today().strftime(date_format)
 
   def __init__(self, url='', title='', created=None, tags=None, categories=''):
+    self.id = uuid.uuid4()
     self.url = url
     self.title = title
     self.mtype = 'unknown'
@@ -38,7 +40,8 @@ class Bookmark:
     self.last_request = None
     self.history = []
 
-  def parse_json(self, data):
+  def parse_json(self, bid, data):
+    self.id = bid
     self.url = data['url']
     self.title = data['title']
     if 'mediaType' in data:
@@ -305,7 +308,7 @@ class BookmarkCollection:
   def json(self):
     data = {}
     for b in self.bookmarks:
-      data[b.url] = b.json
+      data[str(b.id)] = b.json
     return data
 
   @property
@@ -420,9 +423,9 @@ class BookmarkCollectionParser(BookmarkCollection):
       return self._parse_md(data)
 
   def _parse_json(self, data):
-    for url in data:
+    for bid in data:
       bookmark = Bookmark()
-      bookmark.parse_json(data[url])
+      bookmark.parse_json(bid, data[bid])
       if not self.add(bookmark):
         logger.debug(f'not able to add: {bookmark.url}')
     return self

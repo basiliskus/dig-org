@@ -34,7 +34,7 @@ Bookmark Organizer (bkm-org):
    [ ] validate json and markdown files
    [ ] assert md <=> json works
    [ ] assert uniqueness
- [ ] add bookmark guid @high
+ [x] add bookmark guid @high @done (20-07-07 11:49)
  [ ] add discussion url property
  [ ] handle multiple bookmark collections/types @high
    [ ] temporary bookmarks
