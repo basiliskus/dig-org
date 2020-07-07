@@ -161,7 +161,7 @@ class BookmarkCollection:
 
   def __init__(self, fpath=None):
     self.bookmarks = []
-    self.fpath = fpath
+    self.fpath = None
     if fpath:
       self.load(fpath)
 
@@ -201,6 +201,8 @@ class BookmarkCollection:
     return False
 
   def load(self, fpath):
+    self.fpath = fpath
+
     if fpath.suffix == '.json':
       get_data = lambda f: json.load(f)
     elif fpath.suffix == '.md':
