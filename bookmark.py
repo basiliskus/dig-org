@@ -41,7 +41,7 @@ class Bookmark:
     self.history = []
 
   def parse_json(self, bid, data):
-    self.id = bid
+    self.id = uuid.UUID(bid)
     self.url = data['url']
     self.title = data['title']
     if 'mediaType' in data:
