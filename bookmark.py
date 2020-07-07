@@ -36,8 +36,8 @@ class Bookmark:
     self.created = created if created else self.today
     self.tags = tags if tags else []
     self.categories = categories
-    self.validate = [ 'connection', 'url', 'title' ]
-    self.last_request = None
+    self.vtypes = [ 'connection', 'url', 'title' ]
+    self.lrequest = None
     self.history = []
 
   def parse_json(self, bid, data):
@@ -49,10 +49,11 @@ class Bookmark:
     self.created = data['created']
     self.tags = data['tags']
     self.categories = data['categories']
-    self.validate = data['validate']
-    if 'lastHttpRequest' in data:
-      self.last_request = LastHttpRequest(False)
-      self.last_request.parse(data['lastHttpRequest'])
+    if 'validation' in data:
+      self.vtypes = data['validation']['types']
+      if 'lastHttpRequest' in data['validation']:
+        self.lrequest = LastHttpRequest(False)
+        self.lrequest.parse(data['validation']['lastHttpRequest'])
     if 'history' in data:
       self.history = data['history']
 
@@ -70,9 +71,9 @@ class Bookmark:
     data["created"] = self.created
     data["tags"] = self.tags
     data["categories"] = self.categories
-    data["validate"] = self.validate
-    if self.last_request:
-      data["lastHttpRequest"] = self.last_request.json
+    data["validation"] = { "types": self.vtypes }
+    if self.lrequest:
+      data["validation"]["lastHttpRequest"] = self.lrequest.json
     if self.history:
       data["history"] = self.history
     return data
@@ -81,16 +82,16 @@ class Bookmark:
     try:
       response = requests.get(self.url, timeout=(2, 10))
     except Exception as e:
-      self.last_request = LastHttpRequest(False)
+      self.lrequest = LastHttpRequest(False)
       logger.error(f"error connecting to: {self.url}")
       logger.debug(e)
       return False
 
-    self.last_request = LastHttpRequest(True, response.status_code)
+    self.lrequest = LastHttpRequest(True, response.status_code)
 
     # get redirect url
-    if 'url' in self.validate and response.url != self.url:
-      self.last_request.redirect = response.url
+    if 'url' in self.vtypes and response.url != self.url:
+      self.lrequest.redirect = response.url
 
     ctype = response.headers.get('content-type', None)
     if ctype:
@@ -102,10 +103,10 @@ class Bookmark:
     if self.mtype != 'text/html': return True
 
     # get title
-    if 'title' in self.validate:
+    if 'title' in self.vtypes:
       t = self.fetch_title(response)
       if self.title != t:
-        self.last_request.title = t
+        self.lrequest.title = t
 
     return True
 
@@ -148,12 +149,12 @@ class Bookmark:
 
   @property
   def status(self):
-    if not self.last_request:
+    if not self.lrequest:
       code = 10
-    elif not self.last_request.connected:
+    elif not self.lrequest.connected:
       code = 0
     else:
-      code = self.last_request.status
+      code = self.lrequest.status
     status_name = self.statusd[code] if code in self.statusd else 'Unknown Status Code'
     return { "code": code, "name": status_name }
 
@@ -326,8 +327,8 @@ class BookmarkCollection:
 
   def validate(self):
     for b in self.bookmarks:
-      if not 'connection' in b.validate:
-        b.last_request = None
+      if not 'connection' in b.vtypes:
+        b.lrequest = None
         logger.info(f'{b.url} (skip)')
         continue
       logger.info(b.url)
@@ -335,15 +336,15 @@ class BookmarkCollection:
 
   def sync_urls(self):
     for b in self.bookmarks:
-      if b.last_request and b.last_request.redirect:
-        b.update_url(b.last_request.redirect)
-        b.last_request.redirect = None
+      if b.lrequest and b.lrequest.redirect:
+        b.update_url(b.lrequest.redirect)
+        b.lrequest.redirect = None
 
   def sync_titles(self):
     for b in self.bookmarks:
-      if b.last_request and b.last_request.title:
-        b.update_title(b.last_request.title)
-        b.last_request.title = None
+      if b.lrequest and b.lrequest.title:
+        b.update_title(b.lrequest.title)
+        b.lrequest.title = None
 
   def get_bookmarks(self, by, value):
     if by == 'status':
