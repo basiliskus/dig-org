@@ -29,18 +29,32 @@ Task Organizer (task-org):
  [x] change today's file name to today.md and this week's file name to this-week.md @done (20-06-15 23:36)
  [x] handle future tasks @done (20-06-17 20:55)
 Bookmark Organizer (bkm-org):
- [ ] categorize links & manual cleanup
+ [ ] categorize links
  [ ] write tests
    [ ] validate json and markdown files
    [ ] assert md <=> json works
    [ ] assert uniqueness
- [ ] handle multiple bookmark collections @high
-   [ ] handle temporary bookmarks
+ [ ] add bookmark guid @high
+ [ ] add discussion url property
+ [ ] handle multiple bookmark collections/types @high
+   [ ] temporary bookmarks
+      [ ] inbox/send-to
+      [ ] reminder
+   [ ] website/homepage
+   [ ] reference
+   [ ] tools
+   [ ] articles
+      [ ] news (add publication)
+      [ ] opinion/blog (add author, publication)
+      [ ] tutorial
+   [ ] media: audio, image, video
+ [ ] parse domain title, author, blog, etc (found separators: -, |, —, :, ::, @,  •, ·, «, »)
  [ ] import bookmarks from instapaper
    [ ] add selection/highlighting feature
  [ ] create chrome/firefox plugin:
    [ ] sync (import/export) and open webpage with bookmarks
    [ ] bookmark navigator: go to next/prev website
+ [x] manual cleanup @done (20-07-07 11:11)
  [x] add media type property to bookmark @done (20-07-02 12:20)
  [x] compile bookmarks in text file, using markdown @done (20-06-23 22:59)
  [x] store in json file @done (20-06-25 16:05)
@@ -49,6 +63,7 @@ Bookmark Organizer (bkm-org):
  [x] update links @done (20-06-30 12:17)
    [x] url @done (20-06-26 19:31)
    [x] title @done (20-06-27 19:36)
+   [ ] domain title
  [x] maintenance @done (20-06-30 12:17)
    [x] link checker @done (20-06-24 21:14)
    [x] title checker @done (20-06-25 16:06)
