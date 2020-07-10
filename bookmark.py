@@ -173,7 +173,7 @@ class BookmarkCollection:
   def add(self, bookmark):
     found = self.find_by_url(bookmark.url)
     if not found:
-      self.bookmarks.insert(0, bookmark)
+      self.bookmarks.append(bookmark)
       return True
     return False
 
