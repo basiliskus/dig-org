@@ -17,15 +17,15 @@ logger = log.get_logger('bkm-org', log_path=log_path)
 def main(args):
 
   if args['bookmarkfile']:
-    json_fpath = Path(args['bookmarkfile'])
-    if not json_fpath.exists():
-      json_fpath.touch()
+    collection_fpath = Path(args['bookmarkfile'])
+    if not collection_fpath.exists():
+      collection_fpath.touch()
   else:
-    json_fpath = Path(config['bkm-org']['bkm_json_fpath'])
+    collection_fpath = Path(config['bkm-org']['collection_fpath'])
 
   if args['sync']:
     utype = args['sync']
-    bc = BookmarkCollection(json_fpath)
+    bc = BookmarkCollection(collection_fpath)
     sync_bookmarks(bc, utype)
     return
 
@@ -33,14 +33,14 @@ def main(args):
     itype = args['import'][0]
     fpath = args['import'][1]
     bc = BookmarkCollection()
-    if json_fpath.stat().st_size > 0:
-      bc.load(json_fpath)
-    import_bookmarks(bc, itype, fpath, json_fpath)
+    if collection_fpath.stat().st_size > 0:
+      bc.load(collection_fpath)
+    import_bookmarks(bc, itype, fpath, collection_fpath)
     return
 
   urls = None
   if args['list']:
-    bc = BookmarkCollection(json_fpath)
+    bc = BookmarkCollection(collection_fpath)
     ltype = args['list'][0]
     value = args['list'][1] if len(args['list']) > 1 else None
     if value:
@@ -55,7 +55,7 @@ def main(args):
         return
 
   if args['validate']:
-    bc = BookmarkCollection(json_fpath)
+    bc = BookmarkCollection(collection_fpath)
     if urls:
       for u in urls:
         validate_url(bc, u)
@@ -70,7 +70,7 @@ def main(args):
     return
 
   if args['add']:
-    bc = BookmarkCollection(json_fpath)
+    bc = BookmarkCollection(collection_fpath)
     if urls:
       tags = args['add'][0].split(',')
       for u in urls:
@@ -87,7 +87,7 @@ def main(args):
     return
 
   if args['delete']:
-    bc = BookmarkCollection(json_fpath)
+    bc = BookmarkCollection(collection_fpath)
     if urls:
       for u in urls:
         delete_url(bc, u)
