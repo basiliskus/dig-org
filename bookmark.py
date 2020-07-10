@@ -19,6 +19,7 @@ from modules import config
 
 logger = logging.getLogger('bkm-org')
 date_format = '%Y-%m-%d'
+datetime_format = '%Y-%m-%d %H:%M:%S'
 
 class Bookmark:
 
@@ -26,14 +27,14 @@ class Bookmark:
   statusd[0] = 'Connection Failed'
   statusd[10] = 'Unknown'
 
-  today = date.today().strftime(date_format)
+  now = datetime.now()
 
   def __init__(self, url='', title='', created=None, tags=None, categories=''):
     self.id = uuid.uuid4()
     self.url = url
     self.title = title
     self.mtype = 'unknown'
-    self.created = created if created else self.today
+    self.created = created if created else self.now
     self.tags = tags if tags else []
     self.categories = categories
     self.vtypes = [ 'connection', 'url', 'title' ]
@@ -46,7 +47,7 @@ class Bookmark:
     self.title = data['title']
     if 'mediaType' in data:
       self.mtype = data['mediaType']
-    self.created = data['created']
+    self.created = datetime.strptime(data['created'], datetime_format)
     self.tags = data['tags']
     self.categories = data['categories']
     if 'validation' in data:
@@ -68,7 +69,7 @@ class Bookmark:
     data["url"] = self.url
     data["title"] = self.title
     data["mediaType"] = self.mtype
-    data["created"] = self.created
+    data["created"] = self.created.strftime(datetime_format)
     data["tags"] = self.tags
     data["categories"] = self.categories
     data["validation"] = { "types": self.vtypes }
@@ -111,11 +112,11 @@ class Bookmark:
     return True
 
   def update_url(self, url):
-    self.history.append({ "date": self.today, "url": self.url })
+    self.history.append({ "date": self.now, "url": self.url })
     self.url = url
 
   def update_title(self, title):
-    self.history.append({ "date": self.today, "title": self.title })
+    self.history.append({ "date": self.now, "title": self.title })
     self.title = title
 
   def fetch_title(self, response=None):
@@ -356,7 +357,7 @@ class BookmarkCollection:
     if by == 'tag':
       return [ b for b in self.bookmarks if value in b.tags ]
     if by == 'created':
-      return [ b for b in self.bookmarks if value in b.created ]
+      return [ b for b in self.bookmarks if value in b.created.strftime(date_format) ]
     if by == 'domain':
       return [ b for b in self.bookmarks if get_fld(b.url) == value ]
     if by == 'media':
@@ -376,7 +377,7 @@ class BookmarkCollection:
           result[tag].append(b.url)
     elif by == 'created':
       for b in self.bookmarks:
-        result[b.created].append(b.url)
+        result[b.created.strftime(date_format)].append(b.url)
     elif by == 'domain':
       for b in self.bookmarks:
         result[get_fld(b.url)].append(b.url)
@@ -492,10 +493,10 @@ class BookmarkCollectionParser(BookmarkCollection):
       if child.name == 'a':
         url = child.get('href')
         title = child.text
-        created = utils.get_date_from_unix_timestamp(child.get('add_date')).strftime(date_format)
+        created = utils.get_date_from_unix_timestamp(child.get('add_date'))
         bookmark = self.find(url, title)
         if bookmark:
-          if datetime.strptime(created, date_format) < datetime.strptime(bookmark.created, date_format):
+          if created < bookmark.created:
             bookmark.created = created
         else:
           bookmark = Bookmark(url, title, created)
@@ -517,7 +518,7 @@ class BookmarkCollectionParser(BookmarkCollection):
   def import_instapaper(self, data):
     for row in data:
       bookmark = Bookmark(row['URL'], row['Title'])
-      bookmark.created = utils.get_date_from_unix_timestamp(row['Timestamp']).strftime(date_format)
+      bookmark.created = utils.get_date_from_unix_timestamp(row['Timestamp'])
       bookmark.categories = row['Folder']
       bookmark.tags.append(utils.get_tag_from_category(row['Folder']))
       if not self.add(bookmark):
