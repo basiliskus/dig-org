@@ -166,8 +166,8 @@ class BookmarkCollection:
 
   def __init__(self, fpath=None):
     self.bookmarks = []
-    self.fpath = None
-    if fpath:
+    self.fpath = fpath
+    if fpath and fpath.exists():
       self.load(fpath)
 
   def add(self, bookmark):
