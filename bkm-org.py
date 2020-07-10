@@ -153,7 +153,7 @@ def import_bookmarks(bc, itype, input, output):
   bc.write(output)
 
 def add_urls_andor_tags(bc, url, tags):
-  if bc.add_url(url, tags):
+  if bc.add_url(url, tags=tags):
     print(f'{url}: successfully added to collection and saved at {bc.fpath}')
   elif bc.add_tags(url, tags):
     print(f"{url}: successfully added tags '{tags}' to url and saved at {bc.fpath}")

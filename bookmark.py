@@ -179,10 +179,14 @@ class BookmarkCollection:
   def delete(self, bookmark):
     return self.delete_url(bookmark.url)
 
-  def add_url(self, url, tags=None):
+  def add_url(self, url, title=None, tags=None):
     bookmark = Bookmark(url)
-    bookmark.fetch_title()
-    if tags: bookmark.tags = tags
+    if title:
+      bookmark.title = title
+    else:
+      bookmark.fetch_title()
+    if tags:
+      bookmark.tags = tags
     return self.add(bookmark)
 
   def delete_url(self, url):
