@@ -11,8 +11,6 @@ from bookmark import Bookmark, BookmarkCollection
 
 config = config.get_config('config')
 log_path = Path(config['global']['log_path'])
-
-# script_name = utils.get_script_name(__file__)
 logger = log.get_logger('bkm-org', log_path=log_path)
 
 
