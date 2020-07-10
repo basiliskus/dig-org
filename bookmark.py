@@ -39,8 +39,8 @@ class Bookmark:
     self.lrequest = None
     self.history = []
 
-  def parse_json(self, bid, data):
-    self.id = uuid.UUID(bid)
+  def parse_json(self, data):
+    self.id = uuid.UUID(data['id'])
     self.url = data['url']
     self.title = data['title']
     if 'mediaType' in data:
@@ -66,6 +66,7 @@ class Bookmark:
   @property
   def json(self):
     data = {}
+    data["id"] = str(self.id)
     data["url"] = self.url
     data["title"] = self.title
     data["mediaType"] = self.mtype
@@ -164,7 +165,9 @@ class BookmarkCollection:
 
   ignore_titles = [ 'Untitled' , '']
 
-  def __init__(self, fpath=None):
+  def __init__(self, fpath=None, name='', description=''):
+    self.name = name
+    self.description = description
     self.bookmarks = []
     self.fpath = fpath
     if fpath and fpath.exists():
@@ -222,7 +225,10 @@ class BookmarkCollection:
     with open(fpath, encoding='utf-8') as file:
       data = get_data(file)
       bcp = BookmarkCollectionParser(fpath.suffix[1:], self.bookmarks)
-      self.bookmarks = bcp.parse(data).bookmarks
+      parsedbc = bcp.parse(data)
+      self.name = parsedbc.name
+      self.description = parsedbc.description
+      self.bookmarks = parsedbc.bookmarks
 
   def import_md(self):
     self.load(self.fpath.with_suffix('.md'))
@@ -231,13 +237,19 @@ class BookmarkCollection:
     with open(fpath, encoding='utf-8') as file:
       data = bs4.BeautifulSoup(file, 'html.parser')
     bcp = BookmarkCollectionParser('nbff', self.bookmarks)
-    self.bookmarks = bcp.import_nbff(data).bookmarks
+    parsedbc = bcp.import_nbff(data)
+    self.name = parsedbc.name
+    self.description = parsedbc.description
+    self.bookmarks = parsedbc.bookmarks
 
   def import_instapaper(self, fpath):
     with open(fpath, encoding='utf-8') as csv_file:
       reader = csv.DictReader(csv_file)
       bcp = BookmarkCollectionParser('insta', self.bookmarks)
-      self.bookmarks = bcp.import_instapaper(reader).bookmarks
+      parsedbc = bcp.import_instapaper(data)
+      self.name = parsedbc.name
+      self.description = parsedbc.description
+      self.bookmarks = parsedbc.bookmarks
 
   def write(self, fpath=None):
     if not fpath and self.fpath:
@@ -312,9 +324,13 @@ class BookmarkCollection:
 
   @property
   def json(self):
-    data = {}
+    data = {
+      "name": self.name,
+      "description": self.description,
+      "bookmarks": []
+    }
     for b in sorted(self.bookmarks, key=lambda b: b.created, reverse=True):
-      data[str(b.id)] = b.json
+      data["bookmarks"].append(b.json)
     return data
 
   @property
@@ -429,9 +445,11 @@ class BookmarkCollectionParser(BookmarkCollection):
       return self._parse_md(data)
 
   def _parse_json(self, data):
-    for bid in data:
+    self.name = data['name']
+    self.description = data['description']
+    for bjson in data['bookmarks']:
       bookmark = Bookmark()
-      bookmark.parse_json(bid, data[bid])
+      bookmark.parse_json(bjson)
       if not self.add(bookmark):
         logger.debug(f'not able to add: {bookmark.url}')
     return self
