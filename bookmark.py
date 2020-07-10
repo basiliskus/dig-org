@@ -58,7 +58,9 @@ class Bookmark:
 
   @property
   def md(self):
-    title = utils.strip(self.title, ['*', '\n', '\r'])
+    strip_chars = [ '\n', '\r' ]
+    escape_chars = ['*', '_']
+    title = utils.escape(utils.strip(self.title, strip_chars), escape_chars) if self.title else self.url
     return f'* [{title}]({self.url})'
 
   @property

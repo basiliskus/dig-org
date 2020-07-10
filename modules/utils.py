@@ -4,9 +4,14 @@ from datetime import date, datetime
 def get_script_name(fname):
   return os.path.splitext(os.path.basename(fname))[0]
 
-def strip(string, rmv):
-  for r in rmv:
-    string = string.replace(r, '')
+def strip(string, chars):
+  for c in chars:
+    string = string.replace(c, '')
+  return string
+
+def escape(string, chars):
+  for c in chars:
+    string = string.replace(c, f'\\{c}')
   return string
 
 def get_date_from_unix_timestamp(uts):
