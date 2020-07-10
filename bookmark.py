@@ -27,14 +27,12 @@ class Bookmark:
   statusd[0] = 'Connection Failed'
   statusd[10] = 'Unknown'
 
-  now = datetime.now()
-
   def __init__(self, url='', title='', created=None, tags=None, categories=''):
     self.id = uuid.uuid4()
     self.url = url
     self.title = title
     self.mtype = 'unknown'
-    self.created = created if created else self.now
+    self.created = created if created else datetime.now()
     self.tags = tags if tags else []
     self.categories = categories
     self.vtypes = [ 'connection', 'url', 'title' ]
@@ -112,11 +110,11 @@ class Bookmark:
     return True
 
   def update_url(self, url):
-    self.history.append({ "date": self.now, "url": self.url })
+    self.history.append({ "date": datetime.now().strftime(datetime_format), "url": self.url })
     self.url = url
 
   def update_title(self, title):
-    self.history.append({ "date": self.now, "title": self.title })
+    self.history.append({ "date": datetime.now().strftime(datetime_format), "title": self.title })
     self.title = title
 
   def fetch_title(self, response=None):
