@@ -172,7 +172,7 @@ class BookmarkCollection:
   def add(self, bookmark):
     found = self.find_by_url(bookmark.url)
     if not found:
-      self.bookmarks.append(bookmark)
+      self.bookmarks.insert(0, bookmark)
       return True
     return False
 
@@ -308,7 +308,7 @@ class BookmarkCollection:
   @property
   def json(self):
     data = {}
-    for b in self.bookmarks:
+    for b in sorted(self.bookmarks, key=lambda b: b.created, reverse=True):
       data[str(b.id)] = b.json
     return data
 
