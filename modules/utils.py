@@ -15,3 +15,6 @@ def get_date_from_unix_timestamp(uts):
 
 def get_tag_from_category(cat):
   return cat.replace(' ', '-').lower()
+
+def get_category_hierarchy_str(cats):
+  return ' > '.join(cats)

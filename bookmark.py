@@ -498,8 +498,8 @@ class BookmarkCollectionParser(BookmarkCollection):
             bookmark.created = created
         else:
           bookmark = Bookmark(url, title, created)
-          bookmark.categories = ' > '.join(cats)
-          bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ t.replace(' ', '-').lower() for t in cats ]
+          bookmark.categories = utils.get_category_hierarchy_str(cats)
+          bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ utils.get_tag_from_category(c) for c in cats ]
           if not self.add(bookmark):
             logger.debug(f'not able to add: {bookmark.url}')
       elif child.name == 'h3':
