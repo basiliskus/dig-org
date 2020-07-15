@@ -165,9 +165,10 @@ class BookmarkCollection:
 
   ignore_titles = [ 'Untitled' , '']
 
-  def __init__(self, fpath=None, name='', description=''):
+  def __init__(self, fpath=None, name='', description='', catalog='default'):
     self.name = name
     self.description = description
+    self.catalog = catalog
     self.bookmarks = []
     self.fpath = fpath
     if fpath and fpath.exists():
@@ -228,6 +229,7 @@ class BookmarkCollection:
       parsedbc = bcp.parse(data)
       self.name = parsedbc.name
       self.description = parsedbc.description
+      self.catalog = parsedbc.catalog
       self.bookmarks = parsedbc.bookmarks
 
   def import_md(self):
@@ -240,6 +242,7 @@ class BookmarkCollection:
     parsedbc = bcp.import_nbff(data)
     self.name = parsedbc.name
     self.description = parsedbc.description
+    self.catalog = parsedbc.catalog
     self.bookmarks = parsedbc.bookmarks
 
   def import_instapaper(self, fpath):
@@ -249,6 +252,7 @@ class BookmarkCollection:
       parsedbc = bcp.import_instapaper(data)
       self.name = parsedbc.name
       self.description = parsedbc.description
+      self.catalog = parsedbc.catalog
       self.bookmarks = parsedbc.bookmarks
 
   def write(self, fpath=None):
@@ -327,6 +331,7 @@ class BookmarkCollection:
     data = {
       "name": self.name,
       "description": self.description,
+      "catalog": self.catalog,
       "bookmarks": []
     }
     for b in sorted(self.bookmarks, key=lambda b: b.created, reverse=True):
@@ -403,6 +408,24 @@ class BookmarkCollection:
     return result
 
 
+class BookmarkCollectionCatalog:
+
+  ignore_files = [ 'template.json', 'test.json' ]
+
+  def __init__(self, name, path):
+    self.name = name
+    self.path = path
+    self.collections = []
+    self.load()
+
+  def load(self):
+    fpaths = [ f for f  in self.path.glob('*.json') if not f.name in self.ignore_files ]
+    for cpath in fpaths:
+      bc = BookmarkCollection(cpath)
+      if bc.catalog == self.name:
+        self.collections.append(bc)
+
+
 class LastHttpRequest:
 
   def __init__(self, connected, status=None, redirect=None, title=None):
@@ -447,6 +470,7 @@ class BookmarkCollectionParser(BookmarkCollection):
   def _parse_json(self, data):
     self.name = data['name']
     self.description = data['description']
+    self.catalog = data['catalog']
     for bjson in data['bookmarks']:
       bookmark = Bookmark()
       bookmark.parse_json(bjson)
