@@ -19,6 +19,7 @@ logger = logging.getLogger('bkm-org')
 date_format = '%Y-%m-%d'
 datetime_format = '%Y-%m-%d %H:%M:%S'
 
+
 class Bookmark:
 
   statusd = responses.copy()
@@ -33,7 +34,7 @@ class Bookmark:
     self.created = created if created else datetime.now()
     self.tags = tags if tags else []
     self.categories = categories
-    self.vtypes = [ 'connection', 'url', 'title' ]
+    self.vtypes = ['connection', 'url', 'title']
     self.lrequest = None
     self.history = []
 
@@ -56,7 +57,7 @@ class Bookmark:
 
   @property
   def md(self):
-    strip_chars = [ '\n', '\r' ]
+    strip_chars = ['\n', '\r']
     escape_chars = ['*', '_']
     title = utils.escape(utils.strip(self.title, strip_chars), escape_chars) if self.title else self.url
     return f'* [{title}]({self.url})'
@@ -71,7 +72,7 @@ class Bookmark:
     data["created"] = self.created.strftime(datetime_format)
     data["tags"] = self.tags
     data["categories"] = self.categories
-    data["validation"] = { "types": self.vtypes }
+    data["validation"] = {"types": self.vtypes}
     if self.lrequest:
       data["validation"]["lastHttpRequest"] = self.lrequest.json
     if self.history:
@@ -111,11 +112,11 @@ class Bookmark:
     return True
 
   def update_url(self, url):
-    self.history.append({ "date": datetime.now().strftime(datetime_format), "url": self.url })
+    self.history.append({"date": datetime.now().strftime(datetime_format), "url": self.url})
     self.url = url
 
   def update_title(self, title):
-    self.history.append({ "date": datetime.now().strftime(datetime_format), "title": self.title })
+    self.history.append({"date": datetime.now().strftime(datetime_format), "title": self.title})
     self.title = title
 
   def fetch_title(self, response=None):
@@ -136,7 +137,7 @@ class Bookmark:
   def add_tags(self, tags):
     at_least_one_tag_added = False
     for tag in tags:
-      if not tag in self.tags:
+      if tag not in self.tags:
         self.tags.append(tag)
         at_least_one_tag_added = True
     return at_least_one_tag_added
@@ -156,12 +157,12 @@ class Bookmark:
     else:
       code = self.lrequest.status
     status_name = self.statusd[code] if code in self.statusd else 'Unknown Status Code'
-    return { "code": code, "name": status_name }
+    return {"code": code, "name": status_name}
 
 
 class BookmarkCollection:
 
-  ignore_titles = [ 'Untitled' , '']
+  ignore_titles = ['Untitled', '']
 
   def __init__(self, fpath=None, name='', description='', catalog='default'):
     self.name = name
@@ -257,7 +258,7 @@ class BookmarkCollection:
     if not fpath and self.fpath:
       fpath = self.fpath
     elif not self.fpath:
-      raise ValueError(f"no file path to write to defined")
+      raise ValueError("no file path to write to defined")
 
     if fpath.suffix == '.json':
       self.write_json(fpath)
@@ -270,7 +271,7 @@ class BookmarkCollection:
     if not fpath and self.fpath:
       fpath = self.fpath.with_suffix('.json')
     elif not self.fpath:
-      raise ValueError(f"no file path to write to defined")
+      raise ValueError("no file path to write to defined")
 
     with open(fpath, 'w', encoding='utf8') as wf:
       json.dump(self.json, wf, indent=2, ensure_ascii=False)
@@ -280,7 +281,7 @@ class BookmarkCollection:
     if not fpath and self.fpath:
       fpath = self.fpath.with_suffix('.md')
     elif not self.fpath:
-      raise ValueError(f"no file path to write to defined")
+      raise ValueError("no file path to write to defined")
 
     with open(fpath, 'w', encoding='utf8') as wf:
       wf.write(f'{self.md}\n')
@@ -327,10 +328,10 @@ class BookmarkCollection:
   @property
   def json(self):
     data = {
-      "name": self.name,
-      "description": self.description,
-      "catalog": self.catalog,
-      "bookmarks": []
+        "name": self.name,
+        "description": self.description,
+        "catalog": self.catalog,
+        "bookmarks": []
     }
     for b in sorted(self.bookmarks, key=lambda b: b.created, reverse=True):
       data["bookmarks"].append(b.json)
@@ -351,7 +352,7 @@ class BookmarkCollection:
 
   def validate(self):
     for b in self.bookmarks:
-      if not 'connection' in b.vtypes:
+      if 'connection' not in b.vtypes:
         b.lrequest = None
         logger.info(f'{b.url} (skip)')
         continue
@@ -372,18 +373,18 @@ class BookmarkCollection:
 
   def get_bookmarks(self, by, value):
     if by == 'status':
-      return [ b for b in self.bookmarks if b.status['code'] == int(value) ]
+      return [b for b in self.bookmarks if b.status['code'] == int(value)]
     if by == 'tag':
-      return [ b for b in self.bookmarks if value in b.tags ]
+      return [b for b in self.bookmarks if value in b.tags]
     if by == 'created':
-      return [ b for b in self.bookmarks if value in b.created.strftime(date_format) ]
+      return [b for b in self.bookmarks if value in b.created.strftime(date_format)]
     if by == 'domain':
-      return [ b for b in self.bookmarks if get_fld(b.url) == value ]
+      return [b for b in self.bookmarks if get_fld(b.url) == value]
     if by == 'media':
-      return [ b for b in self.bookmarks if value in b.mtype ]
+      return [b for b in self.bookmarks if value in b.mtype]
 
   def get_urls(self, value, by):
-    return [ b.url for b in self.get_bookmarks(value, by) ]
+    return [b.url for b in self.get_bookmarks(value, by)]
 
   def get_grouped_urls(self, by):
     result = defaultdict(list)
@@ -408,7 +409,7 @@ class BookmarkCollection:
 
 class BookmarkCollectionCatalog:
 
-  ignore_files = [ 'template.json', 'test.json' ]
+  ignore_files = ['template.json', 'test.json']
 
   def __init__(self, name, path):
     self.name = name
@@ -417,7 +418,7 @@ class BookmarkCollectionCatalog:
     self.load()
 
   def load(self):
-    fpaths = [ f for f  in self.path.glob('*.json') if not f.name in self.ignore_files ]
+    fpaths = [f for f in self.path.glob('*.json') if f.name not in self.ignore_files]
     for cpath in fpaths:
       bc = BookmarkCollection(cpath)
       if bc.catalog == self.name:
@@ -440,7 +441,7 @@ class LastHttpRequest:
 
   @property
   def json(self):
-    data = { "establishedConnection": self.connected }
+    data = {"establishedConnection": self.connected}
     if self.status:
       data["statusCode"] = self.status
     if self.redirect:
@@ -500,7 +501,7 @@ class BookmarkCollectionParser(BookmarkCollection):
             continue
         if cats:
           bookmark.categories = ' > '.join(cats)
-          bookmark.add_tags([ utils.get_tag_from_category(t) for t in cats ])
+          bookmark.add_tags([utils.get_tag_from_category(t) for t in cats])
         continue
 
       # match title line
@@ -541,7 +542,7 @@ class BookmarkCollectionParser(BookmarkCollection):
         else:
           bookmark = Bookmark(url, title, created)
           bookmark.categories = utils.get_category_hierarchy_str(cats)
-          bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [ utils.get_tag_from_category(c) for c in cats ]
+          bookmark.tags = child.get('tags').split(',') if child.has_attr('tags') else [utils.get_tag_from_category(c) for c in cats]
           if not self.add(bookmark):
             logger.debug(f'not able to add: {bookmark.url}')
       elif child.name == 'h3':
@@ -551,8 +552,8 @@ class BookmarkCollectionParser(BookmarkCollection):
         else:
           cats.append(child.text)
       elif child.name == 'dl':
-        self._nbff_traverse_nodes(child, level+1, cats)
-      elif child.name in ['p','dt','dd']:
+        self._nbff_traverse_nodes(child, level + 1, cats)
+      elif child.name in ['p', 'dt', 'dd']:
         self._nbff_traverse_nodes(child, level, cats)
 
   def import_instapaper(self, data):

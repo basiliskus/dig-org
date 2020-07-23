@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from modules import log
 from modules import utils
 from modules import config
-from todo import Task, Todo, TodoSection, DailyTodo, WeeklyTodo, ArchiveTodo
+from todo import DailyTodo, WeeklyTodo, ArchiveTodo
 
 # To add @recurring tag completion, add this line to  the
 # \Packages\PlainTasks\PlainTasks.sublime-completions file:
@@ -86,6 +86,7 @@ def update(today_todo, weekly_todo, calendar_todo, archive_todo):
   logger.debug('updating weekly todo')
   weekly_todo.update(archive_todo)
 
+
 def write(todo, fpath, test=False):
   logger.info(f"writing file '{fpath}'")
   if not test:
@@ -96,8 +97,10 @@ def write(todo, fpath, test=False):
   else:
     logger.debug(str(todo))
 
+
 def show(todo):
   logger.info(str(todo))
+
 
 def backup_or_delete(fpath, test, action='backup'):
   if action == 'backup':
@@ -111,33 +114,34 @@ def backup_or_delete(fpath, test, action='backup'):
   else:
     raise ValueError("action must be either 'backup' or 'delete'")
 
+
 def get_fpath(fname, folder=todo_path):
   return folder / f'{fname}{TODO_FEXT}'
 
 
 def get_parser():
   parser = argparse.ArgumentParser(
-    description='ToDo file manager',
-    formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    )
+      description='ToDo file manager',
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter
+  )
   parser.add_argument(
-    '-u',
-    '--update',
-    action='store_true',
-    help = 'Update tasks to current date and archive completed tasks'
-    )
+      '-u',
+      '--update',
+      action='store_true',
+      help='Update tasks to current date and archive completed tasks'
+  )
   parser.add_argument(
-    '-s',
-    '--show',
-    choices = ['today', 'week', 'calendar' ],
-    help = 'Show daily, weekly or calendar tasks'
-    )
+      '-s',
+      '--show',
+      choices=['today', 'week', 'calendar'],
+      help='Show daily, weekly or calendar tasks'
+  )
   parser.add_argument(
-    '-t',
-    '--test',
-    action='store_true',
-    help = 'Test run. No files will be modified'
-    )
+      '-t',
+      '--test',
+      action='store_true',
+      help='Test run. No files will be modified'
+  )
   return parser
 
 

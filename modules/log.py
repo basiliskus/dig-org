@@ -3,6 +3,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 LOG_EXTENSION = '.log'
 
+
 def get_logger(fname, log_path='logs', file_log_level='DEBUG', console_log_level='INFO', file_handler_type=None):
 
   date_format = '%Y/%m/%d %H:%M:%S'
@@ -33,6 +34,7 @@ def get_logger(fname, log_path='logs', file_log_level='DEBUG', console_log_level
     logger.addHandler(fh)
 
   return logger
+
 
 def remove_file_handler(logger):
   fhandler = next(h for h in logger.handlers if isinstance(h, (logging.FileHandler, TimedRotatingFileHandler)))

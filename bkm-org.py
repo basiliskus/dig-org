@@ -103,12 +103,14 @@ def main(args):
 def should_print(args):
   return args['validate'] is None and args['delete'] is None and args['add'] is None
 
+
 def validate_url(bc, url):
   b = Bookmark(url)
   if b.verify():
     print_bookmark(b)
   else:
     print('not able to validate')
+
 
 def print_bookmark(b):
   print(f"""url: {b.url}
@@ -118,14 +120,17 @@ media-type: {b.mtype}
 title: {b.last_request.title}
 redirect: {b.last_request.redirect}""")
 
-def print_list(l):
-  print('\n'.join(l))
+
+def print_list(li):
+  print('\n'.join(li))
+
 
 def print_dict(d):
   for key in sorted(d.keys()):
     print(f'{key}:')
     for url in d[key]:
       print(f'  {url}')
+
 
 def sync_bookmarks(bc, utype):
   if utype == 'url':
@@ -140,12 +145,14 @@ def sync_bookmarks(bc, utype):
     bc.import_md()
     bc.write_json()
 
+
 def import_bookmarks(bc, itype, input, output):
   if itype == 'nbff':
     bc.import_nbff(input)
   elif itype == 'insta':
     bc.import_instapaper(input)
   bc.write(output)
+
 
 def add_urls_andor_tags(bc, url, tags):
   if bc.add_url(url, tags=tags):
@@ -155,17 +162,20 @@ def add_urls_andor_tags(bc, url, tags):
   else:
     print(f'{url}: not able to add url to collection')
 
+
 def delete_tag(bc, url, tag):
   if bc.delete_tag(url, tag):
     print(f"{url}: successfully deleted tag '{tag}' and saved at {bc.fpath}")
   else:
     print(f"{url}: not able to delete tag '{tag}'")
 
+
 def delete_url(bc, url):
   if bc.delete_url(url):
     print(f'{url}: successfully deleted from collection and saved at {bc.fpath}')
   else:
     print(f'{url}: not able to delete url from collection')
+
 
 def save_bookmarks(bc):
   bc.write()
@@ -174,73 +184,73 @@ def save_bookmarks(bc):
 
 def get_parser():
   parser = argparse.ArgumentParser(
-    description = 'Bookmark file manager',
-    formatter_class = argparse.RawTextHelpFormatter
+      description='Bookmark file manager',
+      formatter_class=argparse.RawTextHelpFormatter
   )
   parser.add_argument(
-    '-f',
-    '--bookmark-file',
-    dest = 'bookmarkfile',
-    action = 'store',
-    help = 'Specify bookmark file'
+      '-f',
+      '--bookmark-file',
+      dest='bookmarkfile',
+      action='store',
+      help='Specify bookmark file'
   ),
   parser.add_argument(
-    '-v',
-    '--validate',
-    action = 'store',
-    nargs = '?',
-    const = 'collection',
-    help = 'Validate urls. If not url is given, validate bookmark collection'
+      '-v',
+      '--validate',
+      action='store',
+      nargs='?',
+      const='collection',
+      help='Validate urls. If not url is given, validate bookmark collection'
   ),
   parser.add_argument(
-    '-l',
-    '--list',
-    action = 'store',
-    nargs = '+',
-    help = """List urls by property. If no parameter is given to the property, it returns all urls grouped by the property:
-  'status':
-    0: returns urls which failed to connect
-    10: returns urls with unknown status
-    <code>: returns urls with status code <code>
-  'tag':
-    <tag_name>: return urls by tag <tag_name>
-  'created':
-    <date>: return urls by creation date <date> with format 'yyyy-mm-dd'
-  'domain':
-    <domain>: return urls by <domain>'
-  'media':
-    <media_type>: return urls by <media-type>'"""
+      '-l',
+      '--list',
+      action='store',
+      nargs='+',
+      help="""List urls by property. If no parameter is given to the property, it returns all urls grouped by the property:
+    'status':
+      0: returns urls which failed to connect
+      10: returns urls with unknown status
+      <code>: returns urls with status code <code>
+    'tag':
+      <tag_name>: return urls by tag <tag_name>
+    'created':
+      <date>: return urls by creation date <date> with format 'yyyy-mm-dd'
+    'domain':
+      <domain>: return urls by <domain>'
+    'media':
+      <media_type>: return urls by <media-type>'"""
   ),
   parser.add_argument(
-    '-s',
-    '--sync',
-    action = 'store',
-    choices = [ 'url', 'title', 'md', 'json' ],
-    help = 'Sync json file'
+      '-s',
+      '--sync',
+      action='store',
+      choices=['url', 'title', 'md', 'json'],
+      help='Sync json file'
   ),
   parser.add_argument(
-    '-i',
-    '--import',
-    action = 'store',
-    nargs = 2,
-    help = """Import bookmarks from:
-  nbff: Netscape Bookmark File format
-  insta: Instapaper"""
+      '-i',
+      '--import',
+      action='store',
+      nargs=2,
+      help="""Import bookmarks from:
+    nbff: Netscape Bookmark File format
+    insta: Instapaper"""
   ),
   parser.add_argument(
-    '-a',
-    '--add',
-    nargs = '+',
-    action = 'store',
-    help = 'Add url and tags if provided (tags are separated by comma and without space). If url exists, adds tags to url'
+      '-a',
+      '--add',
+      nargs='+',
+      action='store',
+      help='Add url and tags if provided (tags are separated by comma and without space). If url exists, adds tags to url'
   ),
   parser.add_argument(
-    '-d',
-    '--delete',
-    nargs = '?',
-    const = 'piped_urls',
-    action = 'store',
-    help = 'Delete url or tag (if tag provided, url exists and has the tag)'
+      '-d',
+      '--delete',
+      nargs='?',
+      const='piped_urls',
+      action='store',
+      help='Delete url or tag (if tag provided, url exists and has the tag)'
   )
   return parser
 

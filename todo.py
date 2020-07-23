@@ -13,34 +13,19 @@ DAY_HEADER_FORMAT = 'Day of %m/%d/%Y:'
 WEEK_HEADER_FORMAT = '%m/%d'
 
 statusd = {
-  'pending': '[ ]',
-  'completed': '[x]',
-  'cancelled': '[-]'
+    'pending': '[ ]',
+    'completed': '[x]',
+    'cancelled': '[-]'
 }
 
 priorityd = {
-  'today': 1,
-  'critical': 2,
-  'high': 3,
-  'low': 4,
-  'default': 5
+    'today': 1,
+    'critical': 2,
+    'high': 3,
+    'low': 4,
+    'default': 5
 }
 
-# class Priority(Enum):
-#   today = 1
-#   critical = 2
-#   high = 3
-#   low = 4
-
-#   def __str__(self):
-#     return f'@{self.name}'
-
-# class Tag:
-#   def __init__(self, tag):
-#     _name = tag.name if isinstance(tag, Priority) else tag
-
-#   def __str__(self):
-#     return f'@{self._name}'
 
 class Task:
   def __init__(self, status='pending', description='', tags=None, timestamp=None, priority='default', recurring=False, archived=False):
@@ -172,10 +157,10 @@ class Todo:
         # self.logger.info(f"archiving task: '{str(task).strip()}'")
         archive_todo.append(task, self.sdate, is_weekly)
         rtasks.append(task)
-    todo.tasks = [ t for t in todo.tasks if t not in rtasks ]
+    todo.tasks = [t for t in todo.tasks if t not in rtasks]
 
   def _get_list_string(self, li):
-    return ''.join([ str(it) for it in li ])
+    return ''.join([str(it) for it in li])
 
 
 class TodoSection(Todo):
@@ -185,7 +170,7 @@ class TodoSection(Todo):
     self.level = level
 
   def __str__(self):
-    task_lines = [ f'{self.indent}{str(task)}' for task in self.tasks]
+    task_lines = [f'{self.indent}{str(task)}' for task in self.tasks]
     return f'{self.indent}{self._header}\n' + ''.join(task_lines)
 
   @property
@@ -326,7 +311,7 @@ class ArchiveTodo():
       task.tags.insert(0, WEEKLY_TAG)
     if task.timestamp:
       pdate = task.timestamp.date()
-    todos_on_date = [ t for t in self.todos if t.sdate == pdate ]
+    todos_on_date = [t for t in self.todos if t.sdate == pdate]
     if todos_on_date:
       todos_on_date[0].append(task)
     else:
