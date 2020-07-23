@@ -248,7 +248,7 @@ class BookmarkCollection:
     with open(fpath, encoding='utf-8') as csv_file:
       reader = csv.DictReader(csv_file)
       bcp = BookmarkCollectionParser('insta', self.bookmarks)
-      parsedbc = bcp.import_instapaper(data)
+      parsedbc = bcp.import_instapaper(reader)
       self.name = parsedbc.name
       self.description = parsedbc.description
       self.catalog = parsedbc.catalog
