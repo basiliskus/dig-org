@@ -1,7 +1,6 @@
 import re
 import calendar
-from pathlib import Path
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 DONE_TAG = '@done'
 RECURRING_TAG = '@recurring'

@@ -1,10 +1,7 @@
 import argparse
 from pathlib import Path
 
-import requests
-
 from modules import log
-from modules import utils
 from modules import config
 from bookmark import Bookmark, BookmarkCollection
 

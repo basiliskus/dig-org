@@ -3,18 +3,16 @@ import csv
 import json
 import uuid
 import logging
-from pathlib import Path
 from http.client import responses
-from datetime import date, datetime
+from datetime import datetime
 from collections import defaultdict
 
 import cgi
 import bs4
 import requests
-from tld import get_fld
+from tld import get_fld, get_tld
 
 from modules import utils
-from modules import config
 
 
 logger = logging.getLogger('bkm-org')

@@ -1,7 +1,6 @@
 import argparse
-import calendar
 from pathlib import Path
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 from modules import log
 from modules import utils
