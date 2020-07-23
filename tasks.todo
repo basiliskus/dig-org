@@ -54,9 +54,11 @@ Bookmark Organizer (bkm-org):
  [x] create chrome/firefox plugin: @done (20-07-10 15:01)
    [x] add current url to collection @done (20-07-10 15:01)
    [x] export browser bookmarks from browser to collection @done (20-07-10 15:01)
+   [ ] add page media type when adding bookmark
    [ ] import browser bookmarks from collection to browser
    [ ] open webpage to show collection
    [ ] bookmark navigator: go to next/prev website
+   [ ] add tags with autocomplete
  [x] add bookmark guid @high @done (20-07-07 11:49)
  [x] manual cleanup @done (20-07-07 11:11)
  [x] add media type property to bookmark @done (20-07-02 12:20)
